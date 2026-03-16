@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { path: stri
 async function proxy(req: NextRequest, pathSegments: string[], method: string) {
   const path    = pathSegments.join('/');
   const search  = req.nextUrl.search;
-  const url     = `${BACKEND}/api/${path}${search}`;
+  const url     = `${BACKEND}/${path}${search}`;
 
   // Forward auth header if present
   const headers: Record<string, string> = {
