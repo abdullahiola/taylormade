@@ -1,0 +1,105 @@
+'use client';
+
+import Link from 'next/link';
+import { Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
+
+export default function Footer() {
+  return (
+    <footer className="bg-tm-navy text-white">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          {/* Brand */}
+          <div className="md:col-span-1">
+            <div className="mb-4">
+              <span className="font-sans font-black text-2xl uppercase tracking-tight">
+                Taylor<span className="text-tm-red">Made</span>
+              </span>
+              <span className="text-xs font-bold text-tm-gray-mid ml-1 block mt-0.5">GOLF SOUTH AFRICA</span>
+            </div>
+            <p className="text-sm text-gray-400 font-body leading-relaxed">
+              Premium golf equipment trusted by tour professionals worldwide.
+            </p>
+            <div className="flex items-center gap-3 mt-6">
+              {[Instagram, Facebook, Twitter, Youtube].map((Icon, i) => (
+                <a key={i} href="#" className="w-9 h-9 border border-white/20 flex items-center justify-center hover:border-tm-red hover:text-tm-red transition-colors">
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Shop */}
+          <div>
+            <h3 className="font-sans font-black uppercase tracking-widest text-xs mb-5">Shop</h3>
+            <ul className="space-y-3">
+              {['Drivers', 'Irons', 'Putters', 'Wedges', 'Golf Balls', 'Bags', 'Accessories'].map((item) => (
+                <li key={item}>
+                  <Link
+                    href={`/shop?category=${encodeURIComponent(item)}`}
+                    className="text-sm text-gray-400 hover:text-white transition-colors font-body"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Account */}
+          <div>
+            <h3 className="font-sans font-black uppercase tracking-widest text-xs mb-5">Account</h3>
+            <ul className="space-y-3">
+              {[
+                { label: 'Sign In', href: '/login' },
+                { label: 'Create Account', href: '/signup' },
+                { label: 'My Orders', href: '/orders' },
+                { label: 'Cart', href: '#' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href} className="text-sm text-gray-400 hover:text-white transition-colors font-body">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Help */}
+          <div>
+            <h3 className="font-sans font-black uppercase tracking-widest text-xs mb-5">Help</h3>
+            <ul className="space-y-3">
+              {['Shipping Policy', 'Returns & Exchanges', 'Size Guide', 'FAQ', 'Contact Support'].map((item) => (
+                <li key={item}>
+                  <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors font-body">
+                    {item}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 p-4 border border-white/10 bg-white/5">
+              <p className="text-xs text-gray-400 font-body">Customer Support</p>
+              <p className="text-sm font-bold font-sans">0800 GOLF SA</p>
+              <p className="text-xs text-gray-400 font-body mt-1">Mon–Fri, 8am–5pm SAST</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-white/10 px-6 md:px-12 py-5">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-gray-500 font-body">
+            © {new Date().getFullYear()} TaylorMade Golf. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
+              <a key={item} href="#" className="text-xs text-gray-500 hover:text-white transition-colors">
+                {item}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
