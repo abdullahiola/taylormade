@@ -49,8 +49,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # Allows Vercel + any frontend — restrict to your domain in production
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,   # JWT is in Authorization header, not cookies — no credentials needed
     allow_methods=["*"],
     allow_headers=["*"],
 )

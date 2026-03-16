@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) return { success: false, error: data.detail || 'Signup failed.' };
       return { success: true };
     } catch (e) {
-      return { success: false, error: 'Cannot connect to server. Is the backend running?' };
+      return { success: false, error: `Network error: ${e instanceof Error ? e.message : String(e)}` };
     }
   };
 
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
       return { success: true };
     } catch (e) {
-      return { success: false, error: 'Cannot connect to server. Is the backend running?' };
+      return { success: false, error: `Network error: ${e instanceof Error ? e.message : String(e)}` };
     }
   };
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
       return { success: true };
     } catch (e) {
-      return { success: false, error: 'Cannot connect to server. Is the backend running?' };
+      return { success: false, error: `Network error: ${e instanceof Error ? e.message : String(e)}` };
     }
   };
 
