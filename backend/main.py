@@ -6,6 +6,7 @@ from database import init_db, SessionLocal
 from routers.auth_router import router as auth_router
 from routers.orders_router import router as orders_router
 from routers.admin_router import router as admin_router
+from routers.events_router import router as events_router
 
 # ── Startup: init DB + seed admin ─────────────────────────────────────────────
 def seed_admin():
@@ -59,6 +60,7 @@ app.add_middleware(
 app.include_router(auth_router,   prefix="/api/auth",   tags=["Authentication"])
 app.include_router(orders_router, prefix="/api/orders", tags=["Orders"])
 app.include_router(admin_router,  prefix="/api/admin",  tags=["Admin"])
+app.include_router(events_router, prefix="/api/events", tags=["Events"])
 
 
 @app.get("/", tags=["Health"])

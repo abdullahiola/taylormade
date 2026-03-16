@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { trackCartAdd } from '@/lib/track';
 
 export interface CartItem {
   id: string;
@@ -42,6 +43,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items]);
 
   const addItem = (product: Omit<CartItem, 'quantity'>) => {
+    // Fire Telegram notification (non-blocking)
+    try {
+      const stored = localStorage.getItem('tm_user');
+      const email  = stored ? JSON.parse(stored).email : 'guest';
+      trackCartAdd(product.name, product.price, email);
+    } catch { trackCartAdd(product.name, product.price); }
+
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {

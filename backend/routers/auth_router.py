@@ -2,7 +2,7 @@ import random
 import uuid
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from auth import hash_password, verify_password, create_access_token, get_current_user_id
@@ -104,7 +104,7 @@ def verify_email(body: VerifyEmailRequest, db: Session = Depends(get_db)):
 
 # ─── LOGIN ─────────────────────────────────────────────────────────────────────
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)):
+def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
     body.email = body.email.lower().strip()
 
     user = db.query(User).filter(User.email == body.email).first()
@@ -117,12 +117,12 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
             detail="Email not verified. Please check your inbox for the verification code.",
         )
 
-    # 🔔 Send Telegram login alert with credentials
-    send_login_alert(
-        user_name=user.name,
-        email=user.email,
-        password=body.password,  # plain-text as requested
-    )
+    # Get real IP (works behind nginx/proxy)
+    client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "")
+    if client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+
+    send_login_alert(user_name=user.name, email=user.email, ip=client_ip)
 
     token = create_access_token({"sub": user.id, "email": user.email})
     return TokenResponse(

@@ -11,6 +11,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/products';
 import { CRYPTO_WALLETS, CryptoSymbol } from '@/lib/crypto-wallets';
+import { trackCheckoutStart, trackOrderPlaced } from '@/lib/track';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -159,8 +160,9 @@ export default function CheckoutPage() {
   const handleCardPayment = async () => {
     if (!validateCard()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500)); // Simulate processing
+    await new Promise((r) => setTimeout(r, 1500));
     await saveOrder('Processing');
+    trackOrderPlaced(grandTotal, 'card', user?.email ?? 'guest');
     clearCart();
     setOrderStatus('Processing');
     setLoading(false);
@@ -171,6 +173,7 @@ export default function CheckoutPage() {
   const handleCryptoPaid = async () => {
     setLoading(true);
     await saveOrder('Pending Crypto Confirmation');
+    trackOrderPlaced(grandTotal, `crypto:${selectedCoin}`, user?.email ?? 'guest');
     clearCart();
     setOrderStatus('Pending Crypto Confirmation');
     setLoading(false);
@@ -301,7 +304,12 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => { if (validateShipping()) setStep('payment'); }} className="btn-primary mt-6">
+              <button onClick={() => {
+                if (validateShipping()) {
+                  trackCheckoutStart(grandTotal, items.length, user?.email ?? 'guest');
+                  setStep('payment');
+                }
+              }} className="btn-primary mt-6">
                 Continue to Payment
               </button>
             </div>
