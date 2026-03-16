@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Calls go to /api/proxy/* which Vercel relays server-side to the VPS (avoids mixed-content block)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
 
 interface User {
   id: string;
