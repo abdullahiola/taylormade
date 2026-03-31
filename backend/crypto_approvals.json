@@ -1,0 +1,17 @@
+{
+  "admin@taylormade.com": {
+    "approved": false,
+    "coin": "BTC",
+    "amount": "0.020916",
+    "total_usd": 1400.0,
+    "submitted_at": "2026-03-31T16:34:29.113663"
+  },
+  "test@test.com": {
+    "approved": true,
+    "coin": "BTC",
+    "amount": "0.001",
+    "total_usd": 100.0,
+    "submitted_at": "2026-03-29T11:31:03.253956",
+    "approved_at": "2026-03-29T11:31:08.462787"
+  }
+}

@@ -8,14 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 const navItems = [
-  { label: 'Club Sets',  sub: [] },
+  { label: 'Club Sets', sub: [] },
   {
     label: 'Clubs',
-    sub: ['Drivers', 'Irons', 'Putters', 'Wedges'],
+    sub: ['Drivers', 'Fairways', 'Hybrids', 'Irons', 'Putters'],
   },
-  { label: 'Golf Balls', sub: [] },
-  { label: 'Bags',       sub: [] },
-  { label: 'Accessories', sub: [] },
+  { label: 'Golf Carts', sub: [] },
 ];
 
 export default function Navbar() {

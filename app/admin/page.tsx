@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import {
   Users, ShoppingBag, TrendingUp, Package,
   CheckCircle, Clock, Trash2, ChevronDown, ChevronUp,
-  BarChart3, LogOut, RefreshCw, AlertTriangle,
+  BarChart3, LogOut, RefreshCw, AlertTriangle, MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/products';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -81,7 +82,7 @@ function StatCard({ icon: Icon, label, value, sub, color = 'red' }: {
 }
 
 export default function AdminPage() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('dashboard');
   const [stats, setStats] = useState<Stats | null>(null);
@@ -116,11 +117,13 @@ export default function AdminPage() {
   }, [token]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/login'); return; }
     if (!user.is_admin) { router.push('/'); return; }
     fetchData();
-  }, [user, fetchData, router]);
+  }, [user, fetchData, router, authLoading]);
 
+  if (authLoading || !user?.is_admin) return null;
   const deleteUser = async (userId: string) => {
     await fetch(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE', headers });
     setUsers((prev) => prev.filter((u) => u.id !== userId));
@@ -138,7 +141,7 @@ export default function AdminPage() {
     setStatusUpdating(null);
   };
 
-  if (!user?.is_admin) return null;
+
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -157,6 +160,9 @@ export default function AdminPage() {
           <span className="text-white/60 text-xs font-body">{user.email}</span>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/admin/chat" className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs font-sans font-bold uppercase tracking-wider">
+            <MessageSquare className="w-4 h-4" /> Chat
+          </Link>
           <button onClick={fetchData} className="text-white/60 hover:text-white transition-colors">
             <RefreshCw className="w-4 h-4" />
           </button>

@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
+import SupportBubble from '@/components/SupportBubble';
 
 export const metadata: Metadata = {
   title: {
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1 pt-[96px]">
               {children}
             </main>
+            <SupportBubble />
             <Footer />
           </CartProvider>
         </AuthProvider>

@@ -1,0 +1,55 @@
+{
+  "tm-1774778408645-kq9xoiec2": {
+    "email": "admin@taylormade.com",
+    "created_at": "2026-03-29T11:00:15.061881",
+    "messages": [
+      {
+        "id": "user-1774778415.061923",
+        "sender": "user",
+        "text": "hi",
+        "timestamp": "2026-03-29T11:00:15.061935"
+      }
+    ],
+    "pending_replies": [],
+    "unread_count": 0
+  },
+  "tm-1774778455083-0cw24qjns": {
+    "email": "admin@taylormade.com",
+    "created_at": "2026-03-29T11:01:01.465740",
+    "messages": [
+      {
+        "id": "user-1774778461.46579",
+        "sender": "user",
+        "text": "heello",
+        "timestamp": "2026-03-29T11:01:01.466590"
+      },
+      {
+        "id": "user-1774799615.221118",
+        "sender": "user",
+        "text": "hello",
+        "timestamp": "2026-03-29T16:53:35.221173"
+      },
+      {
+        "id": "user-1774856152.0579",
+        "sender": "user",
+        "text": "hi",
+        "timestamp": "2026-03-30T08:35:52.057887"
+      },
+      {
+        "id": "bot-1774856560.538002",
+        "text": "hello",
+        "timestamp": "2026-03-30T08:42:40.537940",
+        "sender": "bot"
+      },
+      {
+        "id": "bot-1774856568.35603",
+        "text": "how may i help you today",
+        "timestamp": "2026-03-30T08:42:48.355851",
+        "sender": "bot"
+      }
+    ],
+    "pending_replies": [],
+    "last_customer_message": "2026-03-30T08:35:52.057887",
+    "unread_count": 0
+  }
+}

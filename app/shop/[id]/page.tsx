@@ -104,14 +104,6 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-tm-border">
               <span className="font-sans font-black text-3xl">{formatPrice(product.price)}</span>
-              {product.originalPrice && (
-                <>
-                  <span className="text-lg text-tm-gray-mid line-through font-body">{formatPrice(product.originalPrice)}</span>
-                  <span className="bg-tm-red text-white text-xs font-bold px-2 py-1">
-                    SAVE {Math.round((1 - product.price / product.originalPrice) * 100)}%
-                  </span>
-                </>
-              )}
             </div>
 
             {/* Description */}
@@ -146,6 +138,14 @@ export default function ProductDetailPage() {
               ) : (
                 <><ShoppingCart className="w-5 h-5" /> Add to Cart</>
               )}
+            </button>
+
+            {/* Purchase via Support */}
+            <button
+              onClick={() => router.push(`/support?product=${product.id}`)}
+              className="w-full mt-3 py-3.5 border-2 border-tm-navy text-tm-navy font-sans font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 hover:bg-tm-navy hover:text-white transition-all duration-200"
+            >
+              💬 Enquire &amp; Purchase via Support
             </button>
 
             {/* Trust badges */}

