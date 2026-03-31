@@ -37,12 +37,7 @@ function ProductCard({ product }: { product: Product }) {
             {product.badge}
           </div>
         )}
-        {/* Discount % pill top-right */}
-        {product.originalPrice && (
-          <div className="absolute top-3 right-3 bg-tm-red text-white text-xs font-black font-sans px-2 py-1 rounded-sm shadow">
-            -{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
-          </div>
-        )}
+
       </div>
       <div className="p-4 flex flex-col flex-1">
         <p className="text-xs text-tm-gray-mid uppercase tracking-wider mb-1 font-body">{product.category}</p>
@@ -55,9 +50,7 @@ function ProductCard({ product }: { product: Product }) {
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-tm-border">
           <div>
             <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
-            {product.originalPrice && (
-              <span className="text-xs text-tm-gray-mid line-through ml-2 font-body">{formatPrice(product.originalPrice)}</span>
-            )}
+
           </div>
           <button
             onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category })}
