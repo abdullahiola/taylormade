@@ -37,11 +37,7 @@ function ProductCard({ product }: { product: typeof products[0] }) {
             {product.badge}
           </div>
         )}
-        {product.originalPrice && (
-          <div className="absolute top-3 right-3 bg-tm-red text-white text-xs font-black font-sans px-2 py-1 rounded-sm shadow">
-            -{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
-          </div>
-        )}
+
         <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <button
             onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category })}
@@ -60,9 +56,7 @@ function ProductCard({ product }: { product: typeof products[0] }) {
         </Link>
         <div className="flex items-center gap-2 mt-2">
           <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
-          {product.originalPrice && (
-            <span className="text-sm text-tm-gray-mid line-through font-body">{formatPrice(product.originalPrice)}</span>
-          )}
+
         </div>
       </div>
     </div>
