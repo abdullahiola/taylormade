@@ -7,12 +7,14 @@ from sqlalchemy.orm import Session
 
 from auth import hash_password, verify_password, create_access_token, get_current_user_id
 from database import get_db
-from email_service import send_otp_email
+from email_service import send_otp_email, send_password_reset_email
 from models import User
 from schemas import (
     SignupRequest,
     VerifyEmailRequest,
     LoginRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserInfo,
     MessageResponse,
@@ -131,6 +133,54 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
     )
 
 
+# ─── FORGOT PASSWORD ──────────────────────────────────────────────────────────
+@router.post("/forgot-password", response_model=MessageResponse)
+def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    body.email = body.email.lower().strip()
+
+    user = db.query(User).filter(User.email == body.email, User.is_verified == True).first()
+    if not user:
+        # Don't reveal whether the email exists
+        return {"message": "If an account with that email exists, a reset code has been sent."}
+
+    otp = generate_otp()
+    user.otp_code = otp
+    user.otp_expires_at = datetime.utcnow() + timedelta(minutes=10)
+    db.commit()
+
+    email_sent = send_password_reset_email(body.email, user.name, otp)
+    if not email_sent:
+        print(f"[WARN] Password reset email failed, OTP for {body.email} is: {otp}")
+
+    return {"message": "If an account with that email exists, a reset code has been sent."}
+
+
+# ─── RESET PASSWORD ───────────────────────────────────────────────────────────
+@router.post("/reset-password", response_model=MessageResponse)
+def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    body.email = body.email.lower().strip()
+
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Account not found.")
+
+    if not user.otp_code or user.otp_code != body.otp.strip():
+        raise HTTPException(status_code=400, detail="Invalid reset code.")
+
+    if datetime.utcnow() > user.otp_expires_at:
+        raise HTTPException(status_code=400, detail="Reset code has expired. Please request a new one.")
+
+    user.hashed_password = hash_password(body.new_password)
+    user.otp_code = None
+    user.otp_expires_at = None
+    db.commit()
+
+    return {"message": "Password reset successfully. You can now sign in with your new password."}
+
+
 # ─── GET CURRENT USER ──────────────────────────────────────────────────────────
 @router.get("/me", response_model=UserInfo)
 def get_me(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -138,3 +188,4 @@ def get_me(user_id: str = Depends(get_current_user_id), db: Session = Depends(ge
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
     return UserInfo(id=user.id, name=user.name, email=user.email, is_admin=user.is_admin)
+

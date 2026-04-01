@@ -121,13 +121,13 @@ export default function SupportChat({ email, userName, linkedProduct, linkedOrde
         ? `Hi ${userName || 'there'}! 👋 I'm interested in the **${linkedProduct.name}** (${formatPrice(linkedProduct.price)}) and would like to enquire about purchasing it.`
         : linkedOrderId
         ? `Hi ${userName || 'there'}! 👋 I have a question about my order **${linkedOrderId}**.`
-        : `Hi ${userName || 'there'}! 👋 Welcome to TaylorMade Support. How can we help you today?`;
+        : `Hi ${userName || 'there'}! 👋 Welcome to Charley Hull Support. How can we help you today?`;
 
       setTimeout(() => {
         setIsTyping(false);
         const welcomeMsg: Message = {
           id: 'welcome',
-          text: `Hi ${userName || 'there'}! 👋 Welcome to TaylorMade Support.${
+          text: `Hi ${userName || 'there'}! 👋 Welcome to Charley Hull Support.${
             linkedProduct
               ? ` I can see you're interested in the **${linkedProduct.name}**. How can I help?`
               : linkedOrderId
@@ -319,7 +319,7 @@ export default function SupportChat({ email, userName, linkedProduct, linkedOrde
           <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white shadow-sm" />
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="font-sans font-black text-white text-sm tracking-wide">TaylorMade Support</h2>
+          <h2 className="font-sans font-black text-white text-sm tracking-wide">Charley Hull Support</h2>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
             <span className="text-xs text-green-300 font-body">Live · Usually responds in &lt;5 min</span>
@@ -390,7 +390,7 @@ export default function SupportChat({ email, userName, linkedProduct, linkedOrde
               {/* Bubble */}
               <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[75%]`}>
                 {isFirstInGroup && !isUser && (
-                  <span className="text-[11px] text-gray-400 font-body ml-1 mb-1">TaylorMade Support</span>
+                  <span className="text-[11px] text-gray-400 font-body ml-1 mb-1">Charley Hull Support</span>
                 )}
                 <div className={`px-4 py-2.5 text-sm font-body leading-relaxed shadow-sm ${
                   isUser

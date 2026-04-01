@@ -83,7 +83,7 @@ export default function SignupPage() {
             {step === 'form' ? 'Create Account' : 'Verify Your Email'}
           </h1>
           <p className="text-gray-400 text-xs font-body mt-1">
-            {step === 'form' ? 'Join TaylorMade Golf Shop' : `Code sent to ${form.email}`}
+            {step === 'form' ? 'Join Charley Hull Stores' : `Code sent to ${form.email}`}
           </p>
         </div>
 

@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
-import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageCircle, Shield, Zap } from 'lucide-react';
+import { ArrowLeft, Mail, MessageCircle, Shield, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SupportChat from '@/components/SupportChat';
 import Link from 'next/link';
@@ -130,10 +130,7 @@ function SupportPageInner() {
               </div>
               <div className="p-5 space-y-4">
                 {[
-                  { icon: Phone, label: 'Phone',   value: '+27 (0) 11 234 5678',             href: 'tel:+27112345678' },
-                  { icon: Mail,  label: 'Email',   value: 'support@taylormade.co.za',        href: 'mailto:support@taylormade.co.za' },
-                  { icon: MapPin,label: 'Address', value: '123 Golf Avenue, Sandton\nJohannesburg, South Africa', href: null },
-                  { icon: Clock, label: 'Hours',   value: 'Mon–Fri: 8 AM – 6 PM\nSat: 9 AM – 2 PM', href: null },
+                  { icon: Mail,  label: 'Email',   value: 'admin@charleyhullstores.com',        href: 'mailto:admin@charleyhullstores.com' },
                 ].map(({ icon: Icon, label, value, href }) => (
                   <div key={label} className="flex items-start gap-3 group">
                     <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-red-50 group-hover:border-red-100 transition-all">

@@ -8,12 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 const navItems = [
-  { label: 'Club Sets', sub: [] },
+  { label: 'Home', sub: [] },
   {
     label: 'Clubs',
     sub: ['Drivers', 'Fairways', 'Hybrids', 'Irons', 'Putters'],
   },
-  { label: 'Golf Carts', sub: [] },
+  { label: 'Golf Cars', sub: [] },
 ];
 
 export default function Navbar() {
@@ -34,7 +34,7 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-tm-border">
       {/* Top strip */}
       <div className="bg-tm-navy text-white text-center text-xs font-sans uppercase tracking-widest py-2">
-      Free Shipping on Orders Over $200
+      Free Shipping on First Time Purchase
       </div>
 
       {/* Main nav */}
@@ -42,9 +42,9 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-0.5">
           <span className="font-sans font-black text-xl uppercase tracking-tight text-tm-navy">
-            Taylor<span className="text-tm-red">Made</span>
+            Charley<span className="text-tm-red"> Hull</span>
           </span>
-          <span className="text-xs font-bold text-tm-gray-mid ml-1 hidden sm:block">GOLF</span>
+          <span className="text-xs font-bold text-tm-gray-mid ml-1 hidden sm:block">STORES</span>
         </Link>
 
         {/* Desktop menu */}
@@ -60,7 +60,7 @@ export default function Navbar() {
                 <>
                   <button
                     className="nav-link flex items-center gap-1 py-2"
-                    onClick={() => handleCategoryNav(item.label)}
+                    onClick={() => { router.push('/shop'); setActiveDropdown(null); }}
                   >
                     {item.label}
                     <ChevronDown className="w-3 h-3" />
@@ -81,7 +81,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <button
-                  onClick={() => handleCategoryNav(item.label)}
+                  onClick={() => item.label === 'Home' ? router.push('/') : handleCategoryNav(item.label)}
                   className="nav-link py-2"
                 >
                   {item.label}
@@ -89,9 +89,7 @@ export default function Navbar() {
               )}
             </li>
           ))}
-          <li>
-            <Link href="/golf-cars" className="nav-link py-2">⛳ Golf Cars</Link>
-          </li>
+
           <li>
             <Link href="/shop" className="nav-link py-2">Shop All</Link>
           </li>

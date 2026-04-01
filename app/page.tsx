@@ -10,10 +10,9 @@ const featuredProducts = products.filter((p) => p.badge === 'Best Seller').slice
 const newArrivals = products.filter((p) => p.isNew).slice(0, 4);
 
 const heroCategories = [
-  { label: 'Club Sets', image: 'https://images.unsplash.com/photo-1610824352934-c10d87b700cc?w=800&q=80', cat: 'Club Sets' },
-  { label: 'Clubs', image: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&q=80', cat: 'Drivers' },
-  { label: 'Golf Balls', image: 'https://images.unsplash.com/photo-1575491156022-e5d5b0a22ef8?w=800&q=80', cat: 'Golf Balls' },
-  { label: 'Bags & Gear', image: 'https://images.unsplash.com/photo-1544827678-27f0fe3ccda2?w=800&q=80', cat: 'Bags' },
+  { label: 'Club Sets', image: '/clubhull.png', cat: 'Club Sets' },
+  { label: 'Clubs', image: '/hulll.png', cat: 'Drivers' },
+  { label: 'Golf Cars', image: '/hullcar.png', cat: 'Golf Cars' },
 ];
 
 function ProductCard({ product }: { product: typeof products[0] }) {
@@ -70,8 +69,8 @@ export default function HomePage() {
       <section className="relative h-[90vh] min-h-[600px] flex items-center overflow-hidden bg-tm-navy">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=1920&q=80"
-            alt="TaylorMade Hero"
+            src="/clean.png"
+            alt="Charley Hull Stores Hero"
             fill
             className="object-cover opacity-40"
             priority
@@ -83,12 +82,12 @@ export default function HomePage() {
             New Season Collection
           </p>
           <h1 className="text-white font-sans font-black uppercase text-5xl md:text-7xl leading-none mb-6">
-            Play<br />
-            <span className="stroke-text">Better.</span><br />
-            Win More.
+            Shop With<br />
+            <span className="stroke-text">Charley</span><br />
+            Hull.
           </h1>
           <p className="text-gray-300 font-body text-lg max-w-lg mb-8 leading-relaxed">
-            Tour-proven technology, now available to every golfer. Shop the latest TaylorMade equipment and elevate your game.
+            Tour-proven technology, now available to every golfer. Shop the latest Charley Hull equipment and elevate your game.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/shop" className="btn-primary">
@@ -205,7 +204,7 @@ export default function HomePage() {
       <section className="relative py-24 px-6 md:px-12 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1587174486073-ae5e5cff43e8?w=1920&q=80"
+            src="/usee.png"
             alt="CTA background"
             fill
             className="object-cover"
@@ -218,7 +217,7 @@ export default function HomePage() {
             Ready to Elevate Your Game?
           </h2>
           <p className="text-gray-300 font-body mb-8">
-            Browse our full catalog of premium TaylorMade equipment. From beginner to tour pro — we have exactly what you need.
+            Browse our full catalog of premium Charley Hull equipment. From beginner to tour pro — we have exactly what you need.
           </p>
           <Link href="/shop" className="btn-primary">
             Shop the Full Collection

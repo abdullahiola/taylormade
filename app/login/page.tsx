@@ -69,6 +69,11 @@ function LoginForm() {
             {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
+        <div className="text-right mt-1.5">
+          <Link href="/forgot-password" className="text-xs font-body text-tm-red hover:underline">
+            Forgot password?
+          </Link>
+        </div>
       </div>
       <button
         type="submit"
@@ -93,7 +98,7 @@ export default function LoginPage() {
         <div className="bg-tm-navy px-8 py-8 text-center">
           <div className="mb-2">
             <span className="font-sans font-black text-2xl text-white uppercase tracking-tight">
-              Taylor<span className="text-tm-red">Made</span>
+              Charley<span className="text-tm-red"> Hull</span>
             </span>
           </div>
           <h1 className="text-white font-sans font-black uppercase tracking-widest text-sm">Sign In</h1>

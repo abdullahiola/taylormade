@@ -458,7 +458,7 @@ export default function AdminChatPage() {
                   </button>
                 </form>
                 <p className="text-[10px] text-white/15 font-body text-center mt-2">
-                  Replying as TaylorMade Support · Your reply delivers instantly to the customer
+                  Replying as Charley Hull Support · Your reply delivers instantly to the customer
                 </p>
               </div>
             </>

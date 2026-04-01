@@ -160,6 +160,9 @@ export default function AdminPage() {
           <span className="text-white/60 text-xs font-body">{user.email}</span>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/admin/orders" className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs font-sans font-bold uppercase tracking-wider">
+            <Package className="w-4 h-4" /> Orders
+          </Link>
           <Link href="/admin/chat" className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs font-sans font-bold uppercase tracking-wider">
             <MessageSquare className="w-4 h-4" /> Chat
           </Link>
@@ -179,7 +182,7 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-sans font-black uppercase text-3xl tracking-wider">
-            Taylor<span className="text-tm-red">Made</span> Admin
+            Charley<span className="text-tm-red"> Hull</span> Admin
           </h1>
           <p className="text-sm text-tm-gray-mid font-body mt-1">Manage your store from one place</p>
         </div>

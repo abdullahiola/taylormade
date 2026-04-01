@@ -12,9 +12,9 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="mb-4">
               <span className="font-sans font-black text-2xl uppercase tracking-tight">
-                Taylor<span className="text-tm-red">Made</span>
+                Charley<span className="text-tm-red"> Hull</span>
               </span>
-              <span className="text-xs font-bold text-tm-gray-mid ml-1 block mt-0.5">GOLF SOUTH AFRICA</span>
+              <span className="text-xs font-bold text-tm-gray-mid ml-1 block mt-0.5">STORES</span>
             </div>
             <p className="text-sm text-gray-400 font-body leading-relaxed">
               Premium golf equipment trusted by tour professionals worldwide.
@@ -77,9 +77,8 @@ export default function Footer() {
               ))}
             </ul>
             <div className="mt-6 p-4 border border-white/10 bg-white/5">
-              <p className="text-xs text-gray-400 font-body">Customer Support</p>
-              <p className="text-sm font-bold font-sans">0800 GOLF SA</p>
-              <p className="text-xs text-gray-400 font-body mt-1">Mon–Fri, 8am–5pm SAST</p>
+              <p className="text-xs text-gray-400 font-body">Contact Us</p>
+              <a href="mailto:admin@charleyhullstores.com" className="text-sm font-bold font-sans hover:text-tm-red transition-colors">admin@charleyhullstores.com</a>
             </div>
           </div>
         </div>
@@ -89,7 +88,7 @@ export default function Footer() {
       <div className="border-t border-white/10 px-6 md:px-12 py-5">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-500 font-body">
-            © {new Date().getFullYear()} TaylorMade Golf. All rights reserved.
+            © {new Date().getFullYear()} Charley Hull Stores. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
