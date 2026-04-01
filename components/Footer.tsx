@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -19,13 +18,6 @@ export default function Footer() {
             <p className="text-sm text-gray-400 font-body leading-relaxed">
               Premium golf equipment trusted by tour professionals worldwide.
             </p>
-            <div className="flex items-center gap-3 mt-6">
-              {[Instagram, Facebook, Twitter, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 border border-white/20 flex items-center justify-center hover:border-tm-red hover:text-tm-red transition-colors">
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Shop */}
