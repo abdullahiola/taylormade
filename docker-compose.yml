@@ -1,10 +1,8 @@
-version: "3.9"
-
 services:
   # ── FastAPI Backend ─────────────────────────────────────────────────────
   backend:
     build: ./backend
-    container_name: charleyhull_api
+    container_name: taylormade-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -22,10 +20,10 @@ services:
       dockerfile: Dockerfile
       args:
         # This gets baked into the JS bundle at build time.
-        # Use /api so browser requests go to the same origin,
+        # Set to empty so fetch("/api/auth/...") goes to same origin,
         # then nginx proxies /api → backend:8000
-        NEXT_PUBLIC_API_URL: /api
-    container_name: charleyhull_frontend
+        NEXT_PUBLIC_API_URL: ""
+    container_name: taylormade-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -33,7 +31,7 @@ services:
   # ── Nginx Reverse Proxy ────────────────────────────────────────────────
   nginx:
     image: nginx:alpine
-    container_name: charleyhull_nginx
+    container_name: taylormade-nginx
     restart: unless-stopped
     ports:
       - "80:80"
