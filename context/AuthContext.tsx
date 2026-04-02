@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-// Calls go to /api/proxy/* which Vercel relays server-side to the VPS (avoids mixed-content block)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
+// Docker: relative URLs go through nginx → backend
+// Local:  http://localhost:8000 → direct to backend
+import { API_URL } from '@/lib/api';
 
 interface User {
   id: string;

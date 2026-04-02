@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { MessageCircle, X, Headphones } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_URL } from '@/lib/api';
 
 export default function SupportBubble() {
   const { user }  = useAuth();

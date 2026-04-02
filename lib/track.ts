@@ -1,11 +1,8 @@
 /**
- * Client-side event tracker — fires fire-and-forget Telegram alerts
- * via the Next.js /api/proxy serverless relay → VPS backend.
+ * Client-side event tracker — fires fire-and-forget Telegram alerts.
  */
 
-const API = typeof window !== 'undefined'
-  ? (process.env.NEXT_PUBLIC_API_URL || '/api/proxy')
-  : '/api/proxy';
+import { API_URL as API } from '@/lib/api';
 
 function post(path: string, body: object) {
   // Fire and forget — never block the UI

@@ -7,7 +7,7 @@ import { Package, ChevronDown, ArrowLeft, RefreshCw, Search } from 'lucide-react
 import Link from 'next/link';
 import { formatPrice } from '@/lib/products';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_URL as API } from '@/lib/api';
 
 interface OrderItem {
   id: string;

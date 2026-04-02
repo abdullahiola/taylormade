@@ -12,7 +12,7 @@ import { formatPrice } from '@/lib/products';
 import Image from 'next/image';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_URL } from '@/lib/api';
 
 type Tab = 'dashboard' | 'users' | 'orders';
 

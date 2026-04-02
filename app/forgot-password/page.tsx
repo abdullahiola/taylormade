@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, KeyRound, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_URL as API } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
