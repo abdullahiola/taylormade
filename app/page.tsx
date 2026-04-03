@@ -10,9 +10,9 @@ const featuredProducts = products.filter((p) => p.badge === 'Best Seller').slice
 const newArrivals = products.filter((p) => p.isNew).slice(0, 4);
 
 const heroCategories = [
-  { label: 'Club Sets', image: '/clubhull.png', cat: 'Club Sets' },
-  { label: 'Clubs', image: '/hulll.png', cat: 'Drivers' },
-  { label: 'Golf Cars', image: '/hullcar.png', cat: 'Golf Cars' },
+  { label: 'Club Sets', image: '/clubhull.webp', cat: 'Club Sets' },
+  { label: 'Clubs', image: '/hulll.webp', cat: 'Drivers' },
+  { label: 'Golf Cars', image: '/hullcar.webp', cat: 'Golf Cars' },
 ];
 
 function ProductCard({ product }: { product: typeof products[0] }) {
@@ -69,7 +69,7 @@ export default function HomePage() {
       <section className="relative h-[90vh] min-h-[600px] flex items-center overflow-hidden bg-tm-navy">
         <div className="absolute inset-0">
           <Image
-            src="/clean.png"
+            src="/clean.webp"
             alt="Charley Hull Stores Hero"
             fill
             className="object-cover opacity-40"
@@ -204,7 +204,7 @@ export default function HomePage() {
       <section className="relative py-24 px-6 md:px-12 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/usee.png"
+            src="/usee.webp"
             alt="CTA background"
             fill
             className="object-cover"

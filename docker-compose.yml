@@ -12,6 +12,7 @@ services:
       - ./backend/.env
     environment:
       - DATABASE_URL=sqlite:////data/charleyhull.db
+      - CHAT_DATA_DIR=/data
 
   # ── Next.js Frontend ───────────────────────────────────────────────────
   frontend:

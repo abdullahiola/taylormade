@@ -16,8 +16,11 @@ from telegram_service import send_support_chat_alert
 
 router = APIRouter()
 
-CHAT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "chat_sessions.json")
-MEDIA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "chat_media")
+# Use CHAT_DATA_DIR for persistent storage in Docker (/data volume),
+# fall back to the app directory for local development
+_DATA_DIR = os.environ.get("CHAT_DATA_DIR", os.path.dirname(os.path.dirname(__file__)))
+CHAT_FILE = os.path.join(_DATA_DIR, "chat_sessions.json")
+MEDIA_DIR = os.path.join(_DATA_DIR, "chat_media")
 os.makedirs(MEDIA_DIR, exist_ok=True)
 chat_lock = Lock()
 

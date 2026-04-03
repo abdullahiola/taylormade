@@ -18,7 +18,7 @@ const MODELS = [
     name: 'Garia Sport',
     tagline: 'Performance meets elegance',
     basePrice: 14999,
-    image: '/golf-car-hero.png',
+    image: '/golf-car-hero.webp',
     specs: { speed: '25 mph', range: '54 miles', seats: 2, charge: '8 hrs' },
     description: 'The Garia Sport combines sporty aesthetics with premium performance. Lightweight alloy frame, sport bucket seats, and a powerful 5 kW electric motor.',
   },
@@ -27,7 +27,7 @@ const MODELS = [
     name: 'Garia Mansory',
     tagline: 'The ultimate luxury car',
     basePrice: 34999,
-    image: '/golf-car-hero.png',
+    image: '/golf-car-hero.webp',
     specs: { speed: '25 mph', range: '54 miles', seats: 2, charge: '6 hrs' },
     description: 'A unique collaboration between Garia and Mansory. Carbon fibre bodywork, Nappa leather interior, crystal accent trim, bespoke paint.',
   },
@@ -36,7 +36,7 @@ const MODELS = [
     name: 'Garia Roadster',
     tagline: 'Open-air freedom on the fairway',
     basePrice: 18999,
-    image: '/golf-car-hero.png',
+    image: '/golf-car-hero.webp',
     specs: { speed: '25 mph', range: '54 miles', seats: 2, charge: '8 hrs' },
     description: 'Convertible golf car with retractable soft top, wrap-around windshield, and integrated sound system.',
   },
@@ -45,7 +45,7 @@ const MODELS = [
     name: 'Garia Utility',
     tagline: 'Work hard, look spectacular',
     basePrice: 12999,
-    image: '/golf-car-hero.png',
+    image: '/golf-car-hero.webp',
     specs: { speed: '25 mph', range: '54 miles', seats: 4, charge: '8 hrs' },
     description: 'Four-seat luxury with rear-fold cargo space, tow hitch, all-terrain tyres, and weatherproof storage.',
   },
@@ -191,7 +191,7 @@ export default function GolfCarsPage() {
       id:       `golf-car-${modelId}-${Date.now()}`,
       name:     `${model.name} — Custom Golf Car`,
       price:    saleTotal,
-      image:    '/golf-car-hero.png',
+      image:    '/golf-car-hero.webp',
       category: 'Golf Cars' as never,
     });
     router.push('/checkout');
@@ -242,7 +242,7 @@ export default function GolfCarsPage() {
           </div>
           <div className="md:w-1/2 relative">
             <div className="relative aspect-[4/3] w-full max-w-lg mx-auto">
-              <Image src="/golf-car-hero.png" alt="Garia Luxury Golf Car" fill className="object-contain drop-shadow-2xl" sizes="600px" />
+              <Image src="/golf-car-hero.webp" alt="Garia Luxury Golf Car" fill className="object-contain drop-shadow-2xl" sizes="600px" />
               {/* Discount badge on image */}
               <div className="absolute top-4 right-4 bg-tm-red text-white font-black font-sans text-2xl px-4 py-2 shadow-xl">
                 {DISCOUNT_LABEL}

@@ -54,7 +54,7 @@ def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
       <p>If you did not create an account, you can safely ignore this email.</p>
     </div>
     <div class="footer">
-      <p>&copy; 2024 Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Hull Stores. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -118,7 +118,7 @@ def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> b
       <p>If you did not request a password reset, you can safely ignore this email.</p>
     </div>
     <div class="footer">
-      <p>&copy; 2024 Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Hull Stores. All rights reserved.</p>
     </div>
   </div>
 </body>

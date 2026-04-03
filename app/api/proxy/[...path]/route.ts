@@ -26,24 +26,41 @@ async function proxy(req: NextRequest, pathSegments: string[], method: string) {
   const search  = req.nextUrl.search;
   const url     = `${BACKEND}/${path}${search}`;
 
-  // Forward auth header if present
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  // Build headers — forward auth and content-type from original request
+  const headers: Record<string, string> = {};
   const auth = req.headers.get('authorization');
   if (auth) headers['Authorization'] = auth;
 
-  let body: string | undefined;
+  const contentType = req.headers.get('content-type');
+  const isMultipart = contentType?.includes('multipart/form-data');
+
+  // For JSON requests, set Content-Type explicitly
+  // For multipart (file uploads), forward the original header with boundary
+  if (contentType && !isMultipart) {
+    headers['Content-Type'] = contentType;
+  } else if (isMultipart && contentType) {
+    headers['Content-Type'] = contentType;
+  }
+
+  let body: BodyInit | undefined;
   if (method !== 'GET' && method !== 'DELETE') {
-    try { body = await req.text(); } catch { /* no body */ }
+    try {
+      if (isMultipart) {
+        // Forward raw binary body for file uploads
+        body = await req.arrayBuffer();
+      } else {
+        body = await req.text();
+      }
+    } catch { /* no body */ }
   }
 
   try {
     const res = await fetch(url, { method, headers, body });
-    const data = await res.text();
+    const resContentType = res.headers.get('content-type') || 'application/json';
+    const data = await res.arrayBuffer();
     return new NextResponse(data, {
       status: res.status,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': resContentType },
     });
   } catch (e) {
     return NextResponse.json(
