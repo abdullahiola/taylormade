@@ -271,6 +271,17 @@ export default function AdminOrdersPage() {
                           <br />
                           {order.shipping_city} {order.shipping_postal}
                         </p>
+                        <p className="text-xs font-body text-gray-400 mt-2">
+                          📦 Est. delivery:{' '}
+                          <span className="font-bold text-gray-600">
+                            {(() => {
+                              const d = new Date(order.created_at);
+                              let added = 0;
+                              while (added < 7) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) added++; }
+                              return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                            })()}
+                          </span>
+                        </p>
                       </div>
                     )}
 

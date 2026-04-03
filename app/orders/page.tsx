@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Package, ShoppingBag, ChevronDown, ChevronUp,
   MapPin, MessageCircle, Clock, CheckCircle, Truck,
-  XCircle, ArrowRight,
+  XCircle, ArrowRight, AlertTriangle, Calendar,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/products';
@@ -40,11 +40,22 @@ const STATUS_STEPS = ['Processing', 'Shipped', 'Delivered'];
 
 function statusConfig(status: string) {
   switch (status) {
-    case 'Delivered':  return { color: 'bg-green-100 text-green-700',  icon: CheckCircle, dot: 'bg-green-500',  label: 'Delivered'  };
-    case 'Shipped':    return { color: 'bg-blue-100 text-blue-700',    icon: Truck,        dot: 'bg-blue-500',   label: 'Shipped'    };
-    case 'Cancelled':  return { color: 'bg-red-100 text-red-700',      icon: XCircle,      dot: 'bg-red-500',    label: 'Cancelled'  };
-    default:           return { color: 'bg-amber-100 text-amber-700',  icon: Clock,        dot: 'bg-amber-500',  label: 'Processing' };
+    case 'Delivered':  return { color: 'bg-green-100 text-green-700',  icon: CheckCircle,    dot: 'bg-green-500',  label: 'Delivered'  };
+    case 'Shipped':    return { color: 'bg-blue-100 text-blue-700',    icon: Truck,          dot: 'bg-blue-500',   label: 'Shipped'    };
+    case 'Cancelled':  return { color: 'bg-red-100 text-red-700',      icon: XCircle,        dot: 'bg-red-500',    label: 'Cancelled'  };
+    case 'Declined':   return { color: 'bg-rose-100 text-rose-700',    icon: AlertTriangle,  dot: 'bg-rose-500',   label: 'Declined'   };
+    default:           return { color: 'bg-amber-100 text-amber-700',  icon: Clock,          dot: 'bg-amber-500',  label: 'Processing' };
   }
+}
+
+function getEstimatedDelivery(createdAt: string): string {
+  const d = new Date(createdAt);
+  let added = 0;
+  while (added < 7) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6) added++;
+  }
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export default function OrdersPage() {
@@ -166,8 +177,8 @@ export default function OrdersPage() {
                   {isOpen && (
                     <div className="border-t border-gray-100">
 
-                      {/* Status timeline (skip for Cancelled) */}
-                      {order.status !== 'Cancelled' && (
+                      {/* Status timeline (skip for Cancelled/Declined) */}
+                      {order.status !== 'Cancelled' && order.status !== 'Declined' && (
                         <div className="px-5 py-4 bg-gray-50 border-b border-gray-100">
                           <div className="flex items-center gap-0">
                             {STATUS_STEPS.map((step, i) => {
@@ -197,6 +208,14 @@ export default function OrdersPage() {
                               );
                             })}
                           </div>
+
+                          {/* Estimated delivery */}
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
+                            <Calendar className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                            <p className="text-xs font-body text-gray-500">
+                              Estimated delivery: <span className="font-bold text-gray-700">{getEstimatedDelivery(order.created_at)}</span>
+                            </p>
+                          </div>
                         </div>
                       )}
 
@@ -205,6 +224,17 @@ export default function OrdersPage() {
                         <div className="mx-5 mt-4 mb-2 rounded-xl bg-red-50 border border-red-100 px-4 py-3 flex items-center gap-2">
                           <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                           <p className="text-xs text-red-600 font-body">This order was cancelled.</p>
+                        </div>
+                      )}
+
+                      {/* Declined banner */}
+                      {order.status === 'Declined' && (
+                        <div className="mx-5 mt-4 mb-2 rounded-xl bg-rose-50 border border-rose-100 px-4 py-3 flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-bold text-rose-700">Payment Declined</p>
+                            <p className="text-[11px] text-rose-600 font-body mt-0.5">Your card payment was declined. Please try again or use a different payment method.</p>
+                          </div>
                         </div>
                       )}
 

@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -9,8 +9,21 @@ from auth import get_current_user_id
 from database import get_db
 from models import Order, User
 from schemas import CreateOrderRequest, OrderResponse, OrderItemSchema
+from email_service import send_order_confirmation_email, send_order_declined_email
 
 router = APIRouter()
+
+
+def _estimated_delivery() -> str:
+    """Calculate estimated delivery date (7 working days from now)."""
+    delivery = datetime.now()
+    days_added = 0
+    while days_added < 7:
+        delivery += timedelta(days=1)
+        # Skip weekends (5 = Saturday, 6 = Sunday)
+        if delivery.weekday() < 5:
+            days_added += 1
+    return delivery.strftime("%B %d, %Y")
 
 
 def order_to_response(order: Order) -> OrderResponse:
@@ -61,6 +74,26 @@ def create_order(
     db.add(order)
     db.commit()
     db.refresh(order)
+
+    # Send order email based on status
+    items_list = [item.model_dump() for item in body.items]
+    if body.status == "Declined":
+        send_order_declined_email(
+            to_email=user.email,
+            user_name=user.name,
+            order_id=order.id,
+            total=body.total,
+        )
+    else:
+        send_order_confirmation_email(
+            to_email=user.email,
+            user_name=user.name,
+            order_id=order.id,
+            items=items_list,
+            total=body.total,
+            estimated_delivery=_estimated_delivery(),
+        )
+
     return order_to_response(order)
 
 
@@ -77,3 +110,4 @@ def get_my_orders(
         .all()
     )
     return [order_to_response(o) for o in orders]
+
