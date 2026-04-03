@@ -98,12 +98,31 @@ def update_order_status(
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found.")
-    valid_statuses = ["Processing", "Shipped", "Delivered", "Cancelled"]
+    valid_statuses = ["Processing", "Shipped", "Delivered", "Cancelled", "Declined"]
     new_status = body.get("status", "")
     if new_status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+
+    old_status = order.status
     order.status = new_status
     db.commit()
+
+    # If moving from Declined → Processing, send success email
+    if old_status == "Declined" and new_status == "Processing":
+        from email_service import send_order_now_successful_email
+        from routers.orders_router import _estimated_delivery
+        import json as _json
+
+        items = _json.loads(order.items_json)
+        send_order_now_successful_email(
+            to_email=order.user_email,
+            user_name=order.user_name,
+            order_id=order.id,
+            items=items,
+            total=order.total,
+            estimated_delivery=_estimated_delivery(),
+        )
+
     return {"message": f"Order {order_id} updated to {new_status}"}
 
 
