@@ -13,7 +13,10 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
-APPROVAL_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "crypto_approvals.json")
+APPROVAL_FILE = os.path.join(
+    os.environ.get("CHAT_DATA_DIR", os.path.dirname(os.path.dirname(__file__))),
+    "crypto_approvals.json",
+)
 approval_lock = Lock()
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')

@@ -344,16 +344,19 @@ def get_media(filename: str):
 @router.post("/telegram-webhook")
 async def telegram_webhook(update: dict):
     """
-    Telegram calls this URL every time a message is sent to the bot.
+    Telegram calls this URL for every update (messages, button presses, etc.).
 
-    Flow:
-      1. Admin receives a customer alert in Telegram.
-      2. Admin hits the native Telegram "Reply" on that alert message.
-      3. Telegram sends the reply here.
-      4. We extract SESSION_ID from the original (replied-to) message text.
-      5. We push the reply into pending_replies so the customer sees it live.
+    Handles:
+      1. callback_query — inline button presses (e.g. "Approve Payment")
+      2. message replies — admin replying to a support chat alert
     """
     try:
+        # ── Handle inline button callback (crypto approval) ──────────────
+        callback = update.get("callback_query")
+        if callback:
+            return _handle_callback_query(callback)
+
+        # ── Handle text message replies (support chat) ───────────────────
         message = update.get("message") or update.get("edited_message")
         if not message:
             return {"ok": True}
@@ -421,6 +424,88 @@ async def telegram_webhook(update: dict):
     except Exception as e:
         print(f"[WEBHOOK ERROR] {e}")
         return {"ok": True}  # Always return 200 to Telegram
+
+
+def _handle_callback_query(callback: dict) -> dict:
+    """Handle inline keyboard button presses (e.g. crypto approval)."""
+    data = callback.get("data", "")
+    callback_id = callback.get("id", "")
+    message = callback.get("message", {})
+    chat_id = message.get("chat", {}).get("id", "")
+    message_id = message.get("message_id", "")
+    original_text = message.get("text", "")
+
+    # Always answer the callback to dismiss the spinner on Telegram
+    if TELEGRAM_BOT_TOKEN and callback_id:
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                client.post(
+                    f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery",
+                    json={"callback_query_id": callback_id},
+                )
+        except Exception:
+            pass
+
+    if data.startswith("approve_crypto:"):
+        email = data[len("approve_crypto:"):]
+        return _approve_crypto_from_telegram(email, chat_id, message_id, original_text)
+
+    print(f"[WEBHOOK] Unknown callback data: {data}")
+    return {"ok": True}
+
+
+def _approve_crypto_from_telegram(email: str, chat_id: str, message_id: str, original_text: str) -> dict:
+    """Approve a crypto payment and update the Telegram message."""
+    import json as _json
+
+    approval_file = os.path.join(
+        os.environ.get("CHAT_DATA_DIR", os.path.dirname(os.path.dirname(__file__))),
+        "crypto_approvals.json",
+    )
+
+    approved = False
+    try:
+        # Load approvals (same file the crypto_approval_router uses)
+        if os.path.exists(approval_file):
+            with open(approval_file, "r") as f:
+                approvals = _json.load(f)
+        else:
+            approvals = {}
+
+        if email in approvals:
+            approvals[email]["approved"] = True
+            approvals[email]["approved_at"] = datetime.now().isoformat()
+            with open(approval_file, "w") as f:
+                _json.dump(approvals, f, indent=2)
+            approved = True
+            print(f"[WEBHOOK] ✓ Crypto payment approved for {email}")
+        else:
+            print(f"[WEBHOOK] No pending crypto payment for {email}")
+    except Exception as e:
+        print(f"[WEBHOOK] Crypto approval error: {e}")
+
+    # Update the Telegram message to show result
+    if TELEGRAM_BOT_TOKEN and chat_id and message_id:
+        status_line = (
+            f"\n\n✅ *Payment APPROVED for {email}!*"
+            if approved
+            else f"\n\n❌ No pending payment found for {email}"
+        )
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                client.post(
+                    f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText",
+                    json={
+                        "chat_id": chat_id,
+                        "message_id": message_id,
+                        "text": original_text + status_line,
+                        "parse_mode": "Markdown",
+                    },
+                )
+        except Exception as e:
+            print(f"[WEBHOOK] Failed to edit message: {e}")
+
+    return {"ok": True}
 
 
 @router.get("/set-webhook")
