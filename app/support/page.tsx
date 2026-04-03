@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
-import { ArrowLeft, Mail, MessageCircle, Shield, Zap } from 'lucide-react';
+import { useEffect, useState, Suspense } from 'react';
+import { ArrowLeft, Mail, MessageCircle, Shield, Zap, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SupportChat from '@/components/SupportChat';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ function SupportPageInner() {
   const productId    = searchParams.get('product');
   const orderId      = searchParams.get('order');
   const linkedProduct = productId ? products.find((p) => p.id === productId) : null;
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/login?redirect=/support${productId ? `?product=${productId}` : orderId ? `?order=${orderId}` : ''}`);
@@ -150,28 +151,58 @@ function SupportPageInner() {
             </div>
 
             {/* FAQ Card */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-50">
-                <h3 className="font-sans font-black text-tm-navy text-xs uppercase tracking-widest">Common Issues</h3>
-                <p className="text-xs text-gray-400 font-body mt-0.5">Quick help topics</p>
-              </div>
-              <ul className="p-3 space-y-1">
-                {[
-                  'Payment declined or failed',
-                  'Order tracking & delivery',
-                  'Returns & exchanges',
-                  'Product warranty claims',
-                  'Account & billing',
-                ].map((item) => (
-                  <li key={item}>
-                    <button className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-body text-gray-600 hover:bg-red-50 hover:text-tm-red transition-all flex items-center gap-2 group">
-                      <span className="text-gray-200 group-hover:text-tm-red transition-colors text-base leading-none">›</span>
-                      {item}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {(() => {
+              const faqs = [
+                {
+                  title: 'Payment Declined or Failed',
+                  content: 'If your payment attempt is declined or unsuccessful, kindly contact our Customer Support team for guidance on the necessary steps to resolve the issue or click the link below.',
+                },
+                {
+                  title: 'Order Tracking & Delivery',
+                  content: 'After your order has been processed and dispatched, a tracking reference will be provided via email. You can use this reference to monitor the status and location of your shipment in real time. If you do not receive tracking information or encounter any issues while tracking your order, please reach out to our Customer Support team. We aim to process and deliver all orders within 7 days. Delivery times may vary depending on your location and other logistical factors. Please note that unforeseen delays may occasionally occur. If your order has not been delivered within the expected timeframe, kindly contact our Customer Support team for further assistance.',
+                },
+                {
+                  title: 'Returns & Exchanges',
+                  content: 'We accept returns and exchanges on eligible items within 7 days of delivery. To qualify, items must be unused, in their original condition, and returned with all original packaging and tags intact.\n\nReturns and exchanges are permitted for items that are defective, damaged, or incorrect upon delivery. To initiate a request, please contact our Customer Support team with your order details and, where applicable, supporting evidence (e.g., images of the item).\n\nOnce your request is reviewed and approved, you will be provided with instructions on how to proceed. All exchanges are subject to product availability; where an exchange is not possible, an alternative resolution will be offered.',
+                },
+                {
+                  title: 'Product Warranty Claims',
+                  content: 'We honor warranty claims on eligible products in accordance with the applicable warranty period specified at the time of purchase. The warranty covers manufacturing defects and faults under normal use but does not apply to damage resulting from misuse, improper handling, unauthorized repairs, or normal wear and tear.\n\nTo initiate a warranty claim, please contact our Customer Support team with your order details, a description of the issue, and any supporting evidence (e.g., images or videos of the defect).\n\nOnce your claim is reviewed and approved, further instructions will be provided. Approved claims may be resolved through repair, replacement, or an alternative solution, depending on the nature of the issue and product availability.',
+                },
+              ];
+
+              return (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-50">
+                    <h3 className="font-sans font-black text-tm-navy text-xs uppercase tracking-widest">Common Issues</h3>
+                    <p className="text-xs text-gray-400 font-body mt-0.5">Quick help topics</p>
+                  </div>
+                  <div className="p-3 space-y-1">
+                    {faqs.map((faq, idx) => (
+                      <div key={faq.title}>
+                        <button
+                          onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                          className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-body text-gray-600 hover:bg-red-50 hover:text-tm-red transition-all flex items-center justify-between gap-2 group"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="text-gray-200 group-hover:text-tm-red transition-colors text-base leading-none">›</span>
+                            {faq.title}
+                          </span>
+                          <ChevronDown className={`w-3.5 h-3.5 text-gray-300 group-hover:text-tm-red transition-all ${openFaq === idx ? 'rotate-180' : ''}`} />
+                        </button>
+                        {openFaq === idx && (
+                          <div className="px-3 pb-3 pt-1">
+                            <div className="bg-gray-50 rounded-lg p-3 text-xs font-body text-gray-500 leading-relaxed whitespace-pre-line">
+                              {faq.content}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
           </div>
         </div>
