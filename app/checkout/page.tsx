@@ -165,7 +165,7 @@ export default function CheckoutPage() {
   };
 
   // ─── Place Order (backend) ───────────────────────────────────────────────────
-  const saveOrder = async (status: string) => {
+  const saveOrder = async (status: string = 'Processing') => {
     try {
       const res = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
@@ -173,6 +173,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image: i.image, category: i.category })),
           subtotal: total, shipping, total: grandTotal,
+          status,
           shipping_info: { name: shippingForm.name, address: shippingForm.address, city: shippingForm.city, province: shippingForm.province, postal: shippingForm.postal, phone: shippingForm.phone },
         }),
       });
@@ -208,9 +209,13 @@ export default function CheckoutPage() {
 
     // Simulate processing delay
     await new Promise((r) => setTimeout(r, 2000));
+
+    // Save order with Declined status
+    await saveOrder('Declined');
+
     setLoading(false);
 
-    // Show payment error popup instead of success
+    // Show payment error popup
     setShowPaymentError(true);
   };
 

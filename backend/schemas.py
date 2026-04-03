@@ -72,6 +72,7 @@ class CreateOrderRequest(BaseModel):
     shipping: float
     total: float
     shipping_info: ShippingInfo
+    status: Optional[str] = "Processing"
 
 
 class OrderResponse(BaseModel):

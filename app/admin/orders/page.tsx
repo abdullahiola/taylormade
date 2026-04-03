@@ -35,13 +35,14 @@ interface Order {
   created_at: string;
 }
 
-const STATUS_OPTIONS = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
+const STATUS_OPTIONS = ['Processing', 'Shipped', 'Delivered', 'Cancelled', 'Declined'];
 
 const STATUS_COLORS: Record<string, string> = {
   Processing: 'bg-amber-100 text-amber-800 border-amber-200',
   Shipped: 'bg-blue-100 text-blue-800 border-blue-200',
   Delivered: 'bg-green-100 text-green-800 border-green-200',
   Cancelled: 'bg-red-100 text-red-800 border-red-200',
+  Declined: 'bg-rose-100 text-rose-800 border-rose-200',
 };
 
 export default function AdminOrdersPage() {

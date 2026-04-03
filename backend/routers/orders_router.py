@@ -52,7 +52,7 @@ def create_order(
         subtotal=body.subtotal,
         shipping=body.shipping,
         total=body.total,
-        status="Processing",
+        status=body.status,
         shipping_name=body.shipping_info.name,
         shipping_address=body.shipping_info.address,
         shipping_city=body.shipping_info.city,
