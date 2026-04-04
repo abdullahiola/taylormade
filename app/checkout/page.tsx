@@ -96,9 +96,6 @@ export default function CheckoutPage() {
     if (items.length === 0 && step !== 'success' && !cryptoPaid) router.push('/shop');
   }, [ready, user, items.length, step, router, cryptoPaid]);
 
-  // Show nothing until hydration is complete
-  if (!ready) return null;
-
   // Poll for crypto payment approval from Telegram bot
   useEffect(() => {
     if (!cryptoPaid || cryptoApproved) return;
@@ -139,6 +136,9 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => { if (paymentMethod === 'crypto') fetchPrices(); }, [paymentMethod, fetchPrices]);
+
+  // Show nothing until hydration is complete
+  if (!ready) return null;
 
   // Get crypto amount for the order total
   const getCryptoAmount = (symbol: CryptoSymbol): string => {
