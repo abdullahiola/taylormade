@@ -92,6 +92,9 @@ export default function Navbar() {
           <li>
             <Link href="/shop" className="nav-link py-2">Shop All</Link>
           </li>
+          <li>
+            <Link href="/orders" className="nav-link py-2">My Orders</Link>
+          </li>
         </ul>
 
         {/* Right icons */}
@@ -206,6 +209,12 @@ export default function Navbar() {
             className="block w-full text-left px-6 py-4 text-sm font-sans font-bold uppercase tracking-widest text-tm-navy hover:bg-tm-gray hover:text-tm-red border-b border-tm-border transition-colors"
           >
             Shop All
+          </button>
+          <button
+            onClick={() => { router.push('/orders'); setMobileOpen(false); }}
+            className="block w-full text-left px-6 py-4 text-sm font-sans font-bold uppercase tracking-widest text-tm-navy hover:bg-tm-gray hover:text-tm-red border-b border-tm-border transition-colors"
+          >
+            My Orders
           </button>
           <div className="px-6 py-4 flex gap-4">
             {user ? (

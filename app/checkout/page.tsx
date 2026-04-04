@@ -114,18 +114,18 @@ export default function CheckoutPage() {
     setPricesLoading(true);
     try {
       const res = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether&vs_currencies=usd',
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd',
         { cache: 'no-store' }
       );
       const data = await res.json();
       setCryptoPrices({
         bitcoin: data.bitcoin?.usd || 65000,
         ethereum: data.ethereum?.usd || 3500,
-        tether: 1,
+        solana: data.solana?.usd || 150,
       });
     } catch {
       // Fallback prices if API fails
-      setCryptoPrices({ bitcoin: 65000, ethereum: 3500, tether: 1 });
+      setCryptoPrices({ bitcoin: 65000, ethereum: 3500, solana: 150 });
     }
     setPricesLoading(false);
   }, []);
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
     const amount = grandTotal / price;
     if (symbol === 'BTC') return amount.toFixed(6);
     if (symbol === 'ETH') return amount.toFixed(5);
-    return amount.toFixed(2);
+    return amount.toFixed(4);
   };
 
   // ─── Validation ──────────────────────────────────────────────────────────────
@@ -458,7 +458,7 @@ export default function CheckoutPage() {
                     <Coins className={`w-5 h-5 flex-shrink-0 ${paymentMethod === 'crypto' ? 'text-tm-red' : 'text-tm-gray-mid'}`} />
                     <div>
                       <p className="font-sans font-black text-xs uppercase tracking-wider">Pay with Crypto</p>
-                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">BTC · ETH · USDT</p>
+                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">BTC · ETH · SOL</p>
                     </div>
                     {paymentMethod === 'crypto' && <CheckCircle className="w-4 h-4 text-tm-red ml-auto flex-shrink-0" />}
                   </button>
