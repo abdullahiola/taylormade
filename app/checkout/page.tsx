@@ -600,7 +600,7 @@ export default function CheckoutPage() {
                           }`}
                           style={selectedCoin === sym ? { borderColor: w.color, backgroundColor: w.color } : {}}
                         >
-                          <img src={w.logo} alt={w.name} className="w-5 h-5" style={{ filter: selectedCoin === sym ? 'brightness(10)' : 'none' }} />
+                          <img src={w.logo} alt={w.name} className="w-5 h-5" />
                           {sym}
                         </button>
                       );
