@@ -18,6 +18,8 @@ def _smtp_send(msg, to_email: str):
     """Send an email using the configured SMTP server.
     Uses SSL for port 465, STARTTLS for port 587."""
     context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
     if SMTP_PORT == 465:
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
