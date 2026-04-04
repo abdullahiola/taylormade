@@ -51,7 +51,7 @@ function CopyButton({ text }: { text: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CheckoutPage() {
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, isLoaded } = useCart();
   const { user, token, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -90,7 +90,7 @@ export default function CheckoutPage() {
 
   // Redirect guards
   useEffect(() => { if (!authLoading && !user) router.push('/login?redirect=/checkout'); }, [user, router, authLoading]);
-  useEffect(() => { if (items.length === 0 && step !== 'success' && !cryptoPaid) router.push('/shop'); }, [items, step, router, cryptoPaid]);
+  useEffect(() => { if (isLoaded && items.length === 0 && step !== 'success' && !cryptoPaid) router.push('/shop'); }, [items, step, router, cryptoPaid, isLoaded]);
 
   // Poll for crypto payment approval from Telegram bot
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
     setPricesLoading(true);
     try {
       const res = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd',
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,tether&vs_currencies=usd',
         { cache: 'no-store' }
       );
       const data = await res.json();
@@ -122,10 +122,11 @@ export default function CheckoutPage() {
         bitcoin: data.bitcoin?.usd || 65000,
         ethereum: data.ethereum?.usd || 3500,
         solana: data.solana?.usd || 150,
+        tether: 1,
       });
     } catch {
       // Fallback prices if API fails
-      setCryptoPrices({ bitcoin: 65000, ethereum: 3500, solana: 150 });
+      setCryptoPrices({ bitcoin: 65000, ethereum: 3500, solana: 150, tether: 1 });
     }
     setPricesLoading(false);
   }, []);
@@ -139,6 +140,7 @@ export default function CheckoutPage() {
     const amount = grandTotal / price;
     if (symbol === 'BTC') return amount.toFixed(6);
     if (symbol === 'ETH') return amount.toFixed(5);
+    if (symbol === 'USDT') return amount.toFixed(2);
     return amount.toFixed(4);
   };
 
@@ -458,7 +460,7 @@ export default function CheckoutPage() {
                     <Coins className={`w-5 h-5 flex-shrink-0 ${paymentMethod === 'crypto' ? 'text-tm-red' : 'text-tm-gray-mid'}`} />
                     <div>
                       <p className="font-sans font-black text-xs uppercase tracking-wider">Pay with Crypto</p>
-                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">BTC · ETH · SOL</p>
+                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">BTC · ETH · SOL · USDT</p>
                     </div>
                     {paymentMethod === 'crypto' && <CheckCircle className="w-4 h-4 text-tm-red ml-auto flex-shrink-0" />}
                   </button>
@@ -591,7 +593,7 @@ export default function CheckoutPage() {
                           }`}
                           style={selectedCoin === sym ? { borderColor: w.color, backgroundColor: w.color } : {}}
                         >
-                          <span className="text-base">{w.emoji}</span>
+                          <img src={w.logo} alt={w.name} className="w-5 h-5" style={{ filter: selectedCoin === sym ? 'brightness(10)' : 'none' }} />
                           {sym}
                         </button>
                       );

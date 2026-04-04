@@ -21,6 +21,7 @@ interface CartContextType {
   total: number;
   itemCount: number;
   isOpen: boolean;
+  isLoaded: boolean;
   openCart: () => void;
   closeCart: () => void;
 }
@@ -30,12 +31,14 @@ const CartContext = createContext<CartContextType | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('tm_cart');
     if (stored) {
       try { setItems(JSON.parse(stored)); } catch {}
     }
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -77,7 +80,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return (
     <CartContext.Provider value={{
       items, addItem, removeItem, updateQuantity, clearCart,
-      total, itemCount, isOpen,
+      total, itemCount, isOpen, isLoaded,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
     }}>
