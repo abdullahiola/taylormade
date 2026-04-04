@@ -88,9 +88,16 @@ export default function CheckoutPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect guards
-  useEffect(() => { if (!authLoading && !user) router.push('/login?redirect=/checkout'); }, [user, router, authLoading]);
-  useEffect(() => { if (isLoaded && items.length === 0 && step !== 'success' && !cryptoPaid) router.push('/shop'); }, [items, step, router, cryptoPaid, isLoaded]);
+  // Redirect guards — wait for both auth AND cart to hydrate before redirecting
+  const ready = !authLoading && isLoaded;
+  useEffect(() => {
+    if (!ready) return;
+    if (!user) { router.push('/login?redirect=/checkout'); return; }
+    if (items.length === 0 && step !== 'success' && !cryptoPaid) router.push('/shop');
+  }, [ready, user, items.length, step, router, cryptoPaid]);
+
+  // Show nothing until hydration is complete
+  if (!ready) return null;
 
   // Poll for crypto payment approval from Telegram bot
   useEffect(() => {
