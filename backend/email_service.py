@@ -1,4 +1,5 @@
 import smtplib
+import ssl
 import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -8,7 +9,25 @@ load_dotenv()
 
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+SMTP_HOST = os.getenv("SMTP_HOST", "mail.charleystores.shop")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+
+
+def _smtp_send(msg, to_email: str):
+    """Send an email using the configured SMTP server.
+    Uses SSL for port 465, STARTTLS for port 587."""
+    context = ssl.create_default_context()
+    if SMTP_PORT == 465:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+    else:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls(context=context)
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
 
 
 def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
@@ -63,11 +82,7 @@ def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
 """
         msg.attach(MIMEText(html, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+        _smtp_send(msg, to_email)
 
         return True
     except Exception as e:
@@ -127,11 +142,7 @@ def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> b
 """
         msg.attach(MIMEText(html, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+        _smtp_send(msg, to_email)
 
         return True
     except Exception as e:
@@ -239,11 +250,7 @@ def send_order_confirmation_email(
 """
         msg.attach(MIMEText(html, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+        _smtp_send(msg, to_email)
 
         return True
     except Exception as e:
@@ -326,11 +333,7 @@ def send_order_declined_email(
 """
         msg.attach(MIMEText(html, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+        _smtp_send(msg, to_email)
 
         return True
     except Exception as e:
@@ -449,11 +452,7 @@ def send_order_now_successful_email(
 """
         msg.attach(MIMEText(html, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+        _smtp_send(msg, to_email)
 
         return True
     except Exception as e:
