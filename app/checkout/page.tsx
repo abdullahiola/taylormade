@@ -588,20 +588,59 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Coin selector */}
-                  <div className="flex gap-2 mb-6">
+                  <div className="grid grid-cols-4 gap-3 mb-6">
                     {(Object.keys(CRYPTO_WALLETS) as CryptoSymbol[]).map((sym) => {
                       const w = CRYPTO_WALLETS[sym];
+                      const isActive = selectedCoin === sym;
                       return (
                         <button
                           key={sym}
                           onClick={() => setSelectedCoin(sym)}
-                          className={`flex items-center gap-2 px-4 py-2.5 border-2 text-xs font-sans font-black uppercase tracking-wider transition-all ${
-                            selectedCoin === sym ? 'border-2 text-white' : 'border-tm-border text-tm-gray-dark hover:border-tm-gray-mid'
+                          className={`relative flex flex-col items-center gap-2 py-4 px-2 rounded-xl border-2 transition-all duration-200 ${
+                            isActive
+                              ? 'border-transparent shadow-lg scale-[1.03]'
+                              : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
                           }`}
-                          style={selectedCoin === sym ? { borderColor: w.color, backgroundColor: w.color } : {}}
+                          style={isActive ? {
+                            borderColor: w.color,
+                            background: `linear-gradient(135deg, ${w.color}08 0%, ${w.color}15 100%)`,
+                            boxShadow: `0 4px 20px ${w.color}25`,
+                          } : {}}
                         >
-                          <img src={w.logo} alt={w.name} className="w-5 h-5" />
-                          {sym}
+                          {/* Logo circle */}
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                              isActive ? 'shadow-md' : ''
+                            }`}
+                            style={{
+                              backgroundColor: isActive ? w.color : `${w.color}15`,
+                            }}
+                          >
+                            <img
+                              src={w.logo}
+                              alt={w.name}
+                              className="w-5 h-5"
+                              style={{ filter: isActive ? 'brightness(10)' : 'none' }}
+                            />
+                          </div>
+                          {/* Label */}
+                          <div className="text-center">
+                            <p className={`text-xs font-sans font-black uppercase tracking-wider ${
+                              isActive ? 'text-tm-navy' : 'text-gray-600'
+                            }`}>{sym}</p>
+                            <p className="text-[10px] text-gray-400 font-body mt-0.5">{w.network.split(' ')[0]}</p>
+                          </div>
+                          {/* Active indicator dot */}
+                          {isActive && (
+                            <div
+                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center shadow-sm"
+                              style={{ backgroundColor: w.color }}
+                            >
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </button>
                       );
                     })}
