@@ -90,7 +90,7 @@ export default function SupportBubble() {
                 <p className="text-[11px] text-gray-500 font-body mt-0.5 leading-relaxed">
                   {hasUnread
                     ? 'Support replied to your message.'
-                    : 'Chat with Charley Hull support — we\'re here!'}
+                    : 'Chat with Charley Stores support — we\'re here!'}
                 </p>
               </div>
             </div>

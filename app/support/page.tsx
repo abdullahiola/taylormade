@@ -131,7 +131,7 @@ function SupportPageInner() {
               </div>
               <div className="p-5 space-y-4">
                 {[
-                  { icon: Mail,  label: 'Email',   value: 'admin@charleyhullstores.com',        href: 'mailto:admin@charleyhullstores.com' },
+                  { icon: Mail,  label: 'Email',   value: 'admin@charleystores.shop',        href: 'mailto:admin@charleystores.shop' },
                 ].map(({ icon: Icon, label, value, href }) => (
                   <div key={label} className="flex items-start gap-3 group">
                     <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-red-50 group-hover:border-red-100 transition-all">

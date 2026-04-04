@@ -9,11 +9,11 @@ import SupportBubble from '@/components/SupportBubble';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Charley Hull Stores – Premium Golf Equipment',
-    template: '%s | Charley Hull Stores',
+    default: 'Charley Stores – Premium Golf Equipment',
+    template: '%s | Charley Stores',
   },
-  description: 'Shop premium Charley Hull golf clubs, balls, bags, and accessories. Fast delivery across South Africa.',
-  keywords: 'Charley Hull, golf, clubs, drivers, irons, putters, golf balls, South Africa',
+  description: 'Shop premium Charley Stores golf clubs, balls, bags, and accessories. Fast delivery across South Africa.',
+  keywords: 'Charley Stores, golf, clubs, drivers, irons, putters, golf balls, South Africa',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

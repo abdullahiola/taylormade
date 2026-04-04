@@ -70,7 +70,7 @@ export default function HomePage() {
         <div className="absolute inset-0">
           <Image
             src="/clean.webp"
-            alt="Charley Hull Stores Hero"
+            alt="Charley Stores Hero"
             fill
             className="object-cover opacity-40"
             priority
@@ -87,7 +87,7 @@ export default function HomePage() {
             Hull.
           </h1>
           <p className="text-gray-300 font-body text-lg max-w-lg mb-8 leading-relaxed">
-            Tour-proven technology, now available to every golfer. Shop the latest Charley Hull equipment and elevate your game.
+            Tour-proven technology, now available to every golfer. Shop the latest Charley Stores equipment and elevate your game.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/shop" className="btn-primary">
@@ -217,7 +217,7 @@ export default function HomePage() {
             Ready to Elevate Your Game?
           </h2>
           <p className="text-gray-300 font-body mb-8">
-            Browse our full catalog of premium Charley Hull equipment. From beginner to tour pro — we have exactly what you need.
+            Browse our full catalog of premium Charley Stores equipment. From beginner to tour pro — we have exactly what you need.
           </p>
           <Link href="/shop" className="btn-primary">
             Shop the Full Collection

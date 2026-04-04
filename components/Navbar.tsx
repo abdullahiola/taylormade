@@ -42,9 +42,8 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-0.5">
           <span className="font-sans font-black text-xl uppercase tracking-tight text-tm-navy">
-            Charley<span className="text-tm-red"> Hull</span>
+            Charley<span className="text-tm-red"> Stores</span>
           </span>
-          <span className="text-xs font-bold text-tm-gray-mid ml-1 hidden sm:block">STORES</span>
         </Link>
 
         {/* Desktop menu */}

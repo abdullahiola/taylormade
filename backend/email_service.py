@@ -36,8 +36,8 @@ def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
     """Send a 6-digit OTP verification email via Gmail SMTP."""
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Your Charley Hull Stores Verification Code"
-        msg["From"] = f"Charley Hull Stores <{SMTP_EMAIL}>"
+        msg["Subject"] = "Your Charley Stores Verification Code"
+        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
         msg["To"] = to_email
 
         html = f"""
@@ -64,11 +64,11 @@ def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
 <body>
   <div class="container">
     <div class="header">
-      <h1>Charley <span>Hull</span> Stores</h1>
+      <h1>Charley <span>Stores</span></h1>
     </div>
     <div class="body">
       <h2>Hi {user_name},</h2>
-      <p>Welcome to Charley Hull Stores! Please verify your email address using the code below to complete your registration.</p>
+      <p>Welcome to Charley Stores! Please verify your email address using the code below to complete your registration.</p>
       <div class="otp-box">
         <div class="otp-code">{otp_code}</div>
         <div class="otp-note">This code expires in <strong>10 minutes</strong></div>
@@ -76,7 +76,7 @@ def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
       <p>If you did not create an account, you can safely ignore this email.</p>
     </div>
     <div class="footer">
-      <p>&copy; Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Stores. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -96,8 +96,8 @@ def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> b
     """Send a 6-digit password reset OTP email via Gmail SMTP."""
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Password Reset — Charley Hull Stores"
-        msg["From"] = f"Charley Hull Stores <{SMTP_EMAIL}>"
+        msg["Subject"] = "Password Reset — Charley Stores"
+        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
         msg["To"] = to_email
 
         html = f"""
@@ -124,7 +124,7 @@ def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> b
 <body>
   <div class="container">
     <div class="header">
-      <h1>Charley <span>Hull</span> Stores</h1>
+      <h1>Charley <span>Stores</span></h1>
     </div>
     <div class="body">
       <h2>Hi {user_name},</h2>
@@ -136,7 +136,7 @@ def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> b
       <p>If you did not request a password reset, you can safely ignore this email.</p>
     </div>
     <div class="footer">
-      <p>&copy; Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Stores. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -163,8 +163,8 @@ def send_order_confirmation_email(
     """Send order confirmation email with order ID, items, and estimated delivery."""
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Order Confirmed — {order_id} | Charley Hull Stores"
-        msg["From"] = f"Charley Hull Stores <{SMTP_EMAIL}>"
+        msg["Subject"] = f"Order Confirmed — {order_id} | Charley Stores"
+        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
         msg["To"] = to_email
 
         # Build items rows
@@ -206,7 +206,7 @@ def send_order_confirmation_email(
 <body>
   <div class="container">
     <div class="header">
-      <h1>Charley <span>Hull</span> Stores</h1>
+      <h1>Charley <span>Stores</span></h1>
     </div>
     <div class="body">
       <h2>Hi {user_name},</h2>
@@ -244,7 +244,7 @@ def send_order_confirmation_email(
       <p style="font-size: 13px; color: #888;">If you have any questions, please contact our <a href="mailto:{SMTP_EMAIL}" style="color: #E8001C;">support team</a>.</p>
     </div>
     <div class="footer">
-      <p>&copy; Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Stores. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -269,8 +269,8 @@ def send_order_declined_email(
     """Send order declined email when card payment fails."""
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Payment Declined — {order_id} | Charley Hull Stores"
-        msg["From"] = f"Charley Hull Stores <{SMTP_EMAIL}>"
+        msg["Subject"] = f"Payment Declined — {order_id} | Charley Stores"
+        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
         msg["To"] = to_email
 
         html = f"""
@@ -299,7 +299,7 @@ def send_order_declined_email(
 <body>
   <div class="container">
     <div class="header">
-      <h1>Charley <span>Hull</span> Stores</h1>
+      <h1>Charley <span>Stores</span></h1>
     </div>
     <div class="body">
       <h2>Hi {user_name},</h2>
@@ -320,14 +320,13 @@ def send_order_declined_email(
       <ul style="color: #555; font-size: 14px; line-height: 2; padding-left: 20px; margin: 0 0 20px;">
         <li>Double-check your card details and try again</li>
         <li>Try a different card or payment method</li>
-        <li>Contact your bank to authorize the transaction</li>
         <li>Reach out to our <a href="{FRONTEND_URL}/support" style="color: #E8001C; text-decoration: underline;">support team</a> for help</li>
       </ul>
 
       <p style="font-size: 13px; color: #888;">Need help? <a href="{FRONTEND_URL}/support" style="color: #E8001C; text-decoration: underline;">Chat with our support team</a> and we'll assist you right away.</p>
     </div>
     <div class="footer">
-      <p>&copy; Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Stores. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -354,8 +353,8 @@ def send_order_now_successful_email(
     """Send email when a previously declined order is approved and now processing."""
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Great News! Order Approved — {order_id} | Charley Hull Stores"
-        msg["From"] = f"Charley Hull Stores <{SMTP_EMAIL}>"
+        msg["Subject"] = f"Great News! Order Approved — {order_id} | Charley Stores"
+        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
         msg["To"] = to_email
 
         # Build items rows
@@ -401,7 +400,7 @@ def send_order_now_successful_email(
 <body>
   <div class="container">
     <div class="header">
-      <h1>Charley <span>Hull</span> Stores</h1>
+      <h1>Charley <span>Stores</span></h1>
     </div>
     <div class="body">
       <h2>Hi {user_name},</h2>
@@ -446,7 +445,7 @@ def send_order_now_successful_email(
       <p style="font-size: 13px; color: #888;">If you have any questions, please contact our <a href="{FRONTEND_URL}/support" style="color: #E8001C;">support team</a>.</p>
     </div>
     <div class="footer">
-      <p>&copy; Charley Hull Stores. All rights reserved.</p>
+      <p>&copy; Charley Stores. All rights reserved.</p>
     </div>
   </div>
 </body>
