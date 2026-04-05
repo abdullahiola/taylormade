@@ -18,7 +18,7 @@ const heroCategories = [
 function ProductCard({ product }: { product: typeof products[0] }) {
   const { addItem } = useCart();
   return (
-    <div className="group card-hover bg-white border border-tm-border">
+    <Link href={`/shop/${product.id}`} className="group card-hover bg-white border border-tm-border block">
       <div className="relative overflow-hidden bg-tm-gray aspect-square">
         <Image
           src={product.image}
@@ -39,7 +39,7 @@ function ProductCard({ product }: { product: typeof products[0] }) {
 
         <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <button
-            onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category })}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category }); }}
             className="btn-primary w-full text-center"
           >
             Add to Cart
@@ -48,17 +48,15 @@ function ProductCard({ product }: { product: typeof products[0] }) {
       </div>
       <div className="p-4">
         <p className="text-xs text-tm-gray-mid font-body uppercase tracking-wider mb-1">{product.category}</p>
-        <Link href={`/shop/${product.id}`}>
-          <h3 className="font-sans font-bold text-sm uppercase tracking-wide leading-snug hover:text-tm-red transition-colors">
-            {product.name}
-          </h3>
-        </Link>
+        <h3 className="font-sans font-bold text-sm uppercase tracking-wide leading-snug group-hover:text-tm-red transition-colors">
+          {product.name}
+        </h3>
         <div className="flex items-center gap-2 mt-2">
           <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
 
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

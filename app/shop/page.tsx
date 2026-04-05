@@ -19,7 +19,7 @@ const sortOptions = [
 function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   return (
-    <div className="group card-hover bg-white border border-tm-border flex flex-col">
+    <Link href={`/shop/${product.id}`} className="group card-hover bg-white border border-tm-border flex flex-col">
       <div className="relative overflow-hidden bg-tm-gray aspect-square">
         <Image
           src={product.image}
@@ -42,11 +42,9 @@ function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="p-4 flex flex-col flex-1">
         <p className="text-xs text-tm-gray-mid uppercase tracking-wider mb-1 font-body">{product.category}</p>
-        <Link href={`/shop/${product.id}`} className="flex-1">
-          <h2 className="font-sans font-bold text-sm uppercase tracking-wide leading-snug hover:text-tm-red transition-colors">
-            {product.name}
-          </h2>
-        </Link>
+        <h2 className="font-sans font-bold text-sm uppercase tracking-wide leading-snug group-hover:text-tm-red transition-colors flex-1">
+          {product.name}
+        </h2>
         <p className="text-xs text-tm-gray-mid font-body mt-2 line-clamp-2">{product.description}</p>
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-tm-border">
           <div>
@@ -54,14 +52,14 @@ function ProductCard({ product }: { product: Product }) {
 
           </div>
           <button
-            onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category })}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category }); }}
             className="bg-tm-black text-white text-xs font-sans font-bold uppercase tracking-widest px-4 py-2 hover:bg-tm-red transition-colors"
           >
             Add
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

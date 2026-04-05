@@ -120,12 +120,20 @@ export default function ProductDetailPage() {
             </h1>
 
             {/* Rating */}
-            <div className="flex items-center gap-1 mb-4">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} className={`w-4 h-4 ${s <= 4 ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
-              ))}
-              <span className="text-xs text-tm-gray-mid ml-1 font-body">(4.0) · 128 reviews</span>
-            </div>
+            {(() => {
+              let h = 0;
+              for (let i = 0; i < product.id.length; i++) h = (h * 37 + product.id.charCodeAt(i)) | 0;
+              const rating = 3.5 + (Math.abs(h) % 4) * 0.5; // 3.5, 4.0, 4.5, or 5.0
+              const reviews = 45 + (Math.abs(h >> 4) % 276); // 45–320
+              return (
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className={`w-4 h-4 ${s <= Math.floor(rating) ? 'fill-amber-400 text-amber-400' : s - 0.5 <= rating ? 'fill-amber-400/50 text-amber-400' : 'text-gray-300'}`} />
+                  ))}
+                  <span className="text-xs text-tm-gray-mid ml-1 font-body">({rating.toFixed(1)}) · {reviews} reviews</span>
+                </div>
+              );
+            })()}
 
             {/* Live viewers */}
             <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-amber-50 border border-amber-200/60 rounded-lg w-fit">
