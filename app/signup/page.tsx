@@ -50,7 +50,7 @@ export default function SignupPage() {
     setLoading(false);
 
     if (result.success) {
-      router.push('/shop');
+      router.push('/');
     } else {
       setError(result.error || 'Verification failed.');
     }

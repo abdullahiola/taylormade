@@ -122,7 +122,7 @@ export default function CartDrawer() {
               <span className="font-sans font-black text-lg">{formatPrice(total)}</span>
             </div>
             <p className="text-xs text-tm-gray-mid font-body">
-            Shipping calculated at checkout. Free shipping on orders over $200.
+            Shipping calculated at checkout. Free Shipping on First Time Purchase.
             </p>
             <button
               onClick={handleCheckout}

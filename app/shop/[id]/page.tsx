@@ -3,10 +3,11 @@
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
-import { ShoppingCart, ArrowLeft, Check, Package, Star } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ShoppingCart, ArrowLeft, Check, Package, Star, Eye } from 'lucide-react';
 import { products, formatPrice } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
+import ItemRequestForm from '@/components/ItemRequestForm';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,13 +15,38 @@ export default function ProductDetailPage() {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
+  // Live viewer count — seeded by product ID, fluctuates slightly
+  const baseViewers = useMemo(() => {
+    let hash = 0;
+    for (let i = 0; i < (id as string).length; i++) hash = (hash * 31 + (id as string).charCodeAt(i)) | 0;
+    return 200 + (Math.abs(hash) % 801); // 200–1000
+  }, [id]);
+  const [viewers, setViewers] = useState(baseViewers);
+
+  useEffect(() => {
+    setViewers(baseViewers);
+    const interval = setInterval(() => {
+      setViewers((v) => {
+        const delta = Math.floor(Math.random() * 31) - 15; // -15 to +15
+        return Math.max(180, Math.min(1020, v + delta));
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [baseViewers]);
+
   const product = products.find((p) => p.id === id);
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-24 text-center">
-        <h1 className="section-title mb-4">Product Not Found</h1>
-        <Link href="/shop" className="btn-primary">Back to Shop</Link>
+      <div className="page-enter max-w-xl mx-auto px-6 py-24">
+        <div className="text-center mb-10">
+          <h1 className="section-title mb-3">Product Not Found</h1>
+          <p className="text-sm text-tm-gray-mid font-body mb-6">
+            The product you&apos;re looking for isn&apos;t available right now, but you can request it below.
+          </p>
+          <Link href="/shop" className="btn-primary">Browse All Products</Link>
+        </div>
+        <ItemRequestForm compact />
       </div>
     );
   }
@@ -99,6 +125,18 @@ export default function ProductDetailPage() {
                 <Star key={s} className={`w-4 h-4 ${s <= 4 ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
               ))}
               <span className="text-xs text-tm-gray-mid ml-1 font-body">(4.0) · 128 reviews</span>
+            </div>
+
+            {/* Live viewers */}
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-amber-50 border border-amber-200/60 rounded-lg w-fit">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+              </span>
+              <Eye className="w-3.5 h-3.5 text-amber-600" />
+              <span className="text-xs font-sans font-bold text-amber-700">
+                {viewers} people are viewing this right now
+              </span>
             </div>
 
             {/* Price */}

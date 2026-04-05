@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import SupportBubble from '@/components/SupportBubble';
+import WelcomePopup from '@/components/WelcomePopup';
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </main>
             <SupportBubble />
+            <WelcomePopup />
             <Footer />
           </CartProvider>
         </AuthProvider>

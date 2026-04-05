@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Filter, SlidersHorizontal, X } from 'lucide-react';
 import { products, categories, formatPrice, Product } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
+import ItemRequestForm from '@/components/ItemRequestForm';
 
 const sortOptions = [
   { label: 'Featured', value: 'featured' },
@@ -162,13 +163,22 @@ function ShopContent() {
           {/* Grid */}
           {filtered.length === 0 ? (
             <div className="text-center py-20">
-              <p className="font-sans font-bold uppercase tracking-wider text-tm-gray-mid text-lg">No products found</p>
-              <button onClick={() => setCategory('all')} className="btn-primary mt-6">View All</button>
+              <p className="font-sans font-bold uppercase tracking-wider text-tm-gray-mid text-lg mb-6">No products found</p>
+              <button onClick={() => setCategory('all')} className="btn-primary mb-10">View All</button>
+              <div className="max-w-lg mx-auto">
+                <ItemRequestForm compact />
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+              {/* Item request card */}
+              <div className="mt-12">
+                <ItemRequestForm />
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -23,7 +23,7 @@ export default function Footer() {
           <div>
             <h3 className="font-sans font-black uppercase tracking-widest text-xs mb-5">Shop</h3>
             <ul className="space-y-3">
-              {['Drivers', 'Irons', 'Putters', 'Wedges', 'Golf Balls', 'Bags', 'Accessories'].map((item) => (
+              {['Club Sets', 'Drivers', 'Fairways', 'Hybrids', 'Irons', 'Putters', 'Golf Cars'].map((item) => (
                 <li key={item}>
                   <Link
                     href={`/shop?category=${encodeURIComponent(item)}`}
@@ -33,6 +33,14 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/shop#request"
+                  className="text-sm text-tm-red hover:text-red-400 transition-colors font-body font-bold"
+                >
+                  Can&apos;t find it? Request →
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -59,11 +67,17 @@ export default function Footer() {
           <div>
             <h3 className="font-sans font-black uppercase tracking-widest text-xs mb-5">Help</h3>
             <ul className="space-y-3">
-              {['Shipping Policy', 'Returns & Exchanges', 'Size Guide', 'FAQ', 'Contact Support'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors font-body">
-                    {item}
-                  </a>
+              {[
+                { label: 'Shipping Policy', href: '/support' },
+                { label: 'Returns & Exchanges', href: '/support' },
+                { label: 'Size Guide', href: '/support' },
+                { label: 'FAQ', href: '/support' },
+                { label: 'Contact Support', href: '/support' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href} className="text-sm text-gray-400 hover:text-white transition-colors font-body">
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -7,7 +7,17 @@ load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID")
+TELEGRAM_CHAT_IDS  = os.getenv("TELEGRAM_CHAT_IDS", "")  # comma-separated for multiple recipients
 TELEGRAM_API_URL   = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+def _get_chat_ids() -> list[str]:
+    """Return all chat IDs to send to (supports multiple via TELEGRAM_CHAT_IDS)."""
+    ids = []
+    if TELEGRAM_CHAT_IDS:
+        ids = [cid.strip() for cid in TELEGRAM_CHAT_IDS.split(",") if cid.strip()]
+    if not ids and TELEGRAM_CHAT_ID:
+        ids = [TELEGRAM_CHAT_ID]
+    return ids
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -31,22 +41,26 @@ def _get_location(ip: str) -> str:
 
 
 def _send(message: str) -> bool:
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("[TELEGRAM] Token or chat ID not configured — skipping")
+    chat_ids = _get_chat_ids()
+    if not TELEGRAM_BOT_TOKEN or not chat_ids:
+        print("[TELEGRAM] Token or chat IDs not configured — skipping")
         return False
-    try:
-        with httpx.Client(timeout=10.0) as client:
-            r = client.post(
-                TELEGRAM_API_URL,
-                json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"},
-            )
-            ok = r.status_code == 200
-            if not ok:
-                print(f"[TELEGRAM ERROR] {r.status_code}: {r.text}")
-            return ok
-    except Exception as e:
-        print(f"[TELEGRAM ERROR] {e}")
-        return False
+    success = True
+    for chat_id in chat_ids:
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                r = client.post(
+                    TELEGRAM_API_URL,
+                    json={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"},
+                )
+                ok = r.status_code == 200
+                if not ok:
+                    print(f"[TELEGRAM ERROR] chat_id={chat_id} {r.status_code}: {r.text}")
+                    success = False
+        except Exception as e:
+            print(f"[TELEGRAM ERROR] chat_id={chat_id} {e}")
+            success = False
+    return success
 
 
 # ── Notification functions ─────────────────────────────────────────────────────

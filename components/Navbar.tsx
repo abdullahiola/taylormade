@@ -188,7 +188,10 @@ export default function Navbar() {
           {navItems.map((item) => (
             <div key={item.label}>
               <button
-                onClick={() => handleCategoryNav(item.label)}
+                onClick={() => {
+                  if (item.label === 'Home') { router.push('/'); setMobileOpen(false); }
+                  else { handleCategoryNav(item.label); }
+                }}
                 className="block w-full text-left px-6 py-4 text-sm font-sans font-bold uppercase tracking-widest text-tm-navy hover:bg-tm-gray hover:text-tm-red border-b border-tm-border transition-colors"
               >
                 {item.label}

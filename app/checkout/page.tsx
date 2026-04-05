@@ -113,29 +113,63 @@ export default function CheckoutPage() {
     return () => clearInterval(interval);
   }, [cryptoPaid, cryptoApproved, user?.email]);
 
-  // Fetch live crypto prices
+  // Fetch live crypto prices — CryptoCompare primary, CoinGecko fallback
   const fetchPrices = useCallback(async () => {
     setPricesLoading(true);
     try {
+      // Primary: CryptoCompare (reliable, no auth needed)
       const res = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,tether&vs_currencies=usd',
+        'https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,SOL,USDT&tsyms=USD',
         { cache: 'no-store' }
       );
-      const data = await res.json();
-      setCryptoPrices({
-        bitcoin: data.bitcoin?.usd || 65000,
-        ethereum: data.ethereum?.usd || 3500,
-        solana: data.solana?.usd || 150,
-        tether: 1,
-      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.BTC?.USD) {
+          setCryptoPrices({
+            bitcoin: data.BTC.USD,
+            ethereum: data.ETH?.USD || 3500,
+            solana: data.SOL?.USD || 150,
+            tether: 1,
+          });
+          setPricesLoading(false);
+          return;
+        }
+      }
+      throw new Error('CryptoCompare unavailable');
     } catch {
-      // Fallback prices if API fails
+      // Fallback: CoinGecko
+      try {
+        const res = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,tether&vs_currencies=usd',
+          { cache: 'no-store' }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.bitcoin?.usd) {
+            setCryptoPrices({
+              bitcoin: data.bitcoin.usd,
+              ethereum: data.ethereum?.usd || 3500,
+              solana: data.solana?.usd || 150,
+              tether: 1,
+            });
+            setPricesLoading(false);
+            return;
+          }
+        }
+      } catch { /* silent */ }
+      // Last resort fallback
       setCryptoPrices({ bitcoin: 65000, ethereum: 3500, solana: 150, tether: 1 });
     }
     setPricesLoading(false);
   }, []);
 
-  useEffect(() => { if (paymentMethod === 'crypto') fetchPrices(); }, [paymentMethod, fetchPrices]);
+  // Fetch on crypto tab select + auto-refresh every 30s
+  useEffect(() => {
+    if (paymentMethod !== 'crypto') return;
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 30000);
+    return () => clearInterval(interval);
+  }, [paymentMethod, fetchPrices]);
 
   // Show nothing until hydration is complete
   if (!ready) return null;
@@ -263,86 +297,173 @@ export default function CheckoutPage() {
     // Crypto: show pending/approved state
     if (cryptoPaid) {
       return (
-        <div className="page-enter min-h-[70vh] flex items-center justify-center px-4">
-          <div className="max-w-md w-full text-center">
+        <div className="page-enter min-h-[70vh] flex items-center justify-center px-4 py-16">
+          <div className="max-w-lg w-full">
             {cryptoApproved ? (
-              <>
-                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-                  <Check className="w-10 h-10 text-green-600" />
+              <div className="relative bg-white rounded-3xl border border-green-100 shadow-xl shadow-green-500/5 overflow-hidden p-8 md:p-10 text-center">
+                {/* Decorative background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50/80 via-white to-emerald-50/40" />
+                <div className="absolute top-0 right-0 w-40 h-40 bg-green-400/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-400/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+                <div className="relative z-10">
+                  {/* Animated success icon */}
+                  <div className="relative w-24 h-24 mx-auto mb-8">
+                    <div className="absolute inset-0 rounded-full bg-green-400/20" style={{ animation: 'cryptoPulse 2s ease-in-out infinite' }} />
+                    <div className="absolute inset-2 rounded-full bg-green-400/10" />
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+                      <Check className="w-12 h-12 text-white" strokeWidth={3} />
+                    </div>
+                  </div>
+
+                  <h1 className="font-sans font-black uppercase tracking-[0.12em] text-2xl md:text-3xl text-gray-900 mb-3">Payment Confirmed!</h1>
+                  {orderId && (
+                    <div className="inline-flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 mb-6">
+                      <span className="text-xs font-body text-gray-500">Order ID:</span>
+                      <span className="text-xs font-sans font-black text-gray-800">{orderId}</span>
+                    </div>
+                  )}
+
+                  {/* Status info */}
+                  <div className="bg-white/80 backdrop-blur border border-green-200/60 rounded-2xl p-5 mb-6 text-left">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-sans font-bold text-green-800 mb-1">Payment Verified Successfully</p>
+                        <p className="text-xs text-green-700/80 font-body leading-relaxed">
+                          Your crypto payment has been confirmed. Your order will be dispatched within 1–2 business days.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-400 font-body mb-8">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400" />
+                    Estimated delivery: <strong className="text-gray-600">3–5 business days</strong>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link href="/orders" className="btn-primary rounded-xl">View Orders</Link>
+                    <Link href="/shop" className="btn-secondary rounded-xl">Continue Shopping</Link>
+                  </div>
                 </div>
-                <h1 className="section-title mb-3">Payment Confirmed!</h1>
-                {orderId && (
-                  <p className="text-sm font-sans font-bold text-tm-gray-mid mb-2">
-                    Order ID: <span className="text-tm-black font-black">{orderId}</span>
-                  </p>
-                )}
-                <div className="bg-green-50 border border-green-200 p-4 mb-6 text-left">
-                  <p className="text-sm font-bold text-green-800 mb-1">✅ Payment Verified</p>
-                  <p className="text-xs text-green-700 font-body leading-relaxed">
-                    Your crypto payment has been confirmed. Your order will be dispatched within 1–2 business days.
-                  </p>
-                </div>
-                <p className="text-sm text-tm-gray-mid font-body mb-8">
-                  Estimated delivery: <strong>3–5 business days</strong>
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link href="/orders" className="btn-primary">View Orders</Link>
-                  <Link href="/shop" className="btn-secondary">Continue Shopping</Link>
-                </div>
-              </>
+              </div>
             ) : (
-              <>
-                <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
-                  <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
+              <div className="relative bg-white rounded-3xl border border-amber-100 shadow-xl shadow-amber-500/5 overflow-hidden p-8 md:p-10 text-center">
+                {/* Decorative background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-50/60 via-white to-orange-50/30" />
+                <div className="absolute top-0 right-0 w-40 h-40 bg-amber-400/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+
+                <div className="relative z-10">
+                  {/* Animated spinner with rings */}
+                  <div className="relative w-28 h-28 mx-auto mb-8">
+                    <div className="absolute inset-0 rounded-full border-2 border-amber-200/50" style={{ animation: 'cryptoPulse 3s ease-in-out infinite' }} />
+                    <div className="absolute inset-3 rounded-full border-2 border-amber-300/30" style={{ animation: 'cryptoPulse 3s ease-in-out infinite 0.5s' }} />
+                    <div className="absolute inset-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    </div>
+                  </div>
+
+                  <h1 className="font-sans font-black uppercase tracking-[0.12em] text-2xl md:text-3xl text-gray-900 mb-3">Awaiting Confirmation</h1>
+                  {orderId && (
+                    <div className="inline-flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 mb-6">
+                      <span className="text-xs font-body text-gray-500">Order ID:</span>
+                      <span className="text-xs font-sans font-black text-gray-800">{orderId}</span>
+                    </div>
+                  )}
+
+                  {/* Status timeline */}
+                  <div className="bg-white/80 backdrop-blur border border-amber-200/50 rounded-2xl p-5 mb-6 text-left">
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex flex-col items-center">
+                          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          <div className="w-px h-6 bg-green-300" />
+                        </div>
+                        <div className="pt-0.5">
+                          <p className="text-xs font-sans font-bold text-green-700">Payment Sent</p>
+                          <p className="text-[11px] text-gray-400 font-body">Transaction submitted to the network</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="flex flex-col items-center">
+                          <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          </div>
+                          <div className="w-px h-6 bg-gray-200" />
+                        </div>
+                        <div className="pt-0.5">
+                          <p className="text-xs font-sans font-bold text-amber-700">Verifying Payment</p>
+                          <p className="text-[11px] text-gray-400 font-body">Confirming your transaction on the blockchain</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-gray-300" />
+                        </div>
+                        <div className="pt-0.5">
+                          <p className="text-xs font-sans font-bold text-gray-400">Order Processing</p>
+                          <p className="text-[11px] text-gray-300 font-body">An email will be sent once your order has been processed successfully</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live polling indicator */}
+                  <div className="flex items-center justify-center gap-2.5 mb-8">
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="text-sm text-gray-400 font-body">Checking payment status</span>
+                  </div>
+
+                  <Link href="/support" className="inline-flex items-center gap-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 font-sans font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-xl transition-colors">
+                    <Headphones className="w-4 h-4" /> Contact Support
+                  </Link>
                 </div>
-                <h1 className="section-title mb-3">Awaiting Confirmation</h1>
-                {orderId && (
-                  <p className="text-sm font-sans font-bold text-tm-gray-mid mb-2">
-                    Order ID: <span className="text-tm-black font-black">{orderId}</span>
-                  </p>
-                )}
-                <div className="bg-amber-50 border border-amber-200 p-4 mb-6 text-left">
-                  <p className="text-sm font-bold text-amber-800 mb-1">⏳ Pending Verification</p>
-                  <p className="text-xs text-amber-700 font-body leading-relaxed">
-                    Your crypto payment is being verified. Please stay on this page — it will update automatically once your payment is confirmed. This usually takes a few minutes.
-                  </p>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-sm text-tm-gray-mid font-body mb-6">
-                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                  Checking payment status...
-                </div>
-                <Link href="/support" className="btn-secondary inline-flex items-center gap-2">
-                  <Headphones className="w-4 h-4" /> Contact Support
-                </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
       );
     }
 
-    // Card success (shouldn't normally reach here with card flow)
+    // Card success
     return (
-      <div className="page-enter min-h-[70vh] flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-green-600" />
-          </div>
-          <h1 className="section-title mb-3">Order Placed!</h1>
-          {orderId && (
-            <p className="text-sm font-sans font-bold text-tm-gray-mid mb-2">
-              Order ID: <span className="text-tm-black font-black">{orderId}</span>
-            </p>
-          )}
-          <p className="text-tm-gray-mid font-body mb-2">
-            Thank you! You&apos;ll receive a confirmation email shortly.
-          </p>
-          <p className="text-sm text-tm-gray-mid font-body mb-8">
-            Estimated delivery: <strong>3–5 business days</strong>
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/orders" className="btn-primary">View Orders</Link>
-            <Link href="/shop" className="btn-secondary">Continue Shopping</Link>
+      <div className="page-enter min-h-[70vh] flex items-center justify-center px-4 py-16">
+        <div className="max-w-lg w-full">
+          <div className="relative bg-white rounded-3xl border border-green-100 shadow-xl shadow-green-500/5 overflow-hidden p-8 md:p-10 text-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50/80 via-white to-emerald-50/40" />
+            <div className="relative z-10">
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 rounded-full bg-green-400/20" style={{ animation: 'cryptoPulse 2s ease-in-out infinite' }} />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <Check className="w-12 h-12 text-white" strokeWidth={3} />
+                </div>
+              </div>
+              <h1 className="font-sans font-black uppercase tracking-[0.12em] text-2xl md:text-3xl text-gray-900 mb-3">Order Placed!</h1>
+              {orderId && (
+                <div className="inline-flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 mb-4">
+                  <span className="text-xs font-body text-gray-500">Order ID:</span>
+                  <span className="text-xs font-sans font-black text-gray-800">{orderId}</span>
+                </div>
+              )}
+              <p className="text-gray-400 font-body mb-2">Thank you! You&apos;ll receive a confirmation email shortly.</p>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-400 font-body mb-8">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400" />
+                Estimated delivery: <strong className="text-gray-600">3–5 business days</strong>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/orders" className="btn-primary rounded-xl">View Orders</Link>
+                <Link href="/shop" className="btn-secondary rounded-xl">Continue Shopping</Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -351,31 +472,39 @@ export default function CheckoutPage() {
 
   // ─── Order Summary Sidebar ───────────────────────────────────────────────────
   const OrderSummary = () => (
-    <div className="border border-tm-border p-5 sticky top-28">
-      <h2 className="font-sans font-black uppercase tracking-widest text-xs mb-5">Order Summary</h2>
-      <ul className="space-y-3 divide-y divide-tm-border">
-        {items.map((item) => (
-          <li key={item.id} className="flex gap-3 pt-3 first:pt-0">
-            <div className="relative w-14 h-14 bg-tm-gray flex-shrink-0 overflow-hidden">
-              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="56px" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-tm-black text-white text-xs font-bold flex items-center justify-center rounded-full font-sans">{item.quantity}</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-sans font-bold uppercase leading-tight truncate">{item.name}</p>
-              <p className="text-xs text-tm-gray-mid font-body">{item.category}</p>
-            </div>
-            <span className="text-xs font-bold font-sans flex-shrink-0">{formatPrice(item.price * item.quantity)}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-5 pt-4 border-t border-tm-border space-y-2">
-        <div className="flex justify-between text-sm font-body"><span className="text-tm-gray-mid">Subtotal</span><span>{formatPrice(total)}</span></div>
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden sticky top-28">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-gray-50 to-white px-5 py-4 border-b border-gray-100">
+        <h2 className="font-sans font-black uppercase tracking-widest text-xs text-gray-700">Order Summary</h2>
+        <p className="text-[10px] text-gray-400 font-body mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''} in cart</p>
+      </div>
+      {/* Items */}
+      <div className="px-5 py-4">
+        <ul className="space-y-3">
+          {items.map((item) => (
+            <li key={item.id} className="flex gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0">
+              <div className="relative w-14 h-14 bg-gray-50 flex-shrink-0 overflow-hidden rounded-xl">
+                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="56px" />
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white text-[10px] font-bold flex items-center justify-center rounded-full font-sans shadow-sm">{item.quantity}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-sans font-bold uppercase leading-tight truncate text-gray-800">{item.name}</p>
+                <p className="text-[10px] text-gray-400 font-body mt-0.5">{item.category}</p>
+              </div>
+              <span className="text-xs font-bold font-sans flex-shrink-0 text-gray-700">{formatPrice(item.price * item.quantity)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {/* Totals */}
+      <div className="bg-gray-50/50 px-5 py-4 space-y-2.5">
+        <div className="flex justify-between text-sm font-body"><span className="text-gray-400">Subtotal</span><span className="text-gray-600">{formatPrice(total)}</span></div>
         <div className="flex justify-between text-sm font-body">
-          <span className="text-tm-gray-mid">Shipping</span>
-          <span>{shipping === 0 ? <span className="text-green-600 font-bold">Free</span> : formatPrice(shipping)}</span>
+          <span className="text-gray-400">Shipping</span>
+          <span>{shipping === 0 ? <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-0.5 rounded-full">FREE</span> : <span className="text-gray-600">{formatPrice(shipping)}</span>}</span>
         </div>
-        <div className="flex justify-between font-sans font-black text-base pt-2 border-t border-tm-border">
-          <span>Total</span><span>{formatPrice(grandTotal)}</span>
+        <div className="flex justify-between font-sans font-black text-base pt-3 border-t border-gray-200">
+          <span className="text-gray-800">Total</span><span className="text-gray-900">{formatPrice(grandTotal)}</span>
         </div>
       </div>
     </div>
@@ -386,17 +515,37 @@ export default function CheckoutPage() {
     <div className="page-enter max-w-6xl mx-auto px-4 md:px-12 py-10">
       <h1 className="section-title mb-8">Checkout</h1>
 
-      {/* Progress */}
-      <div className="flex items-center gap-2 mb-10">
-        {['Shipping', 'Payment'].map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-sans ${
-              (step === 'shipping' && i === 0) || (step === 'payment' && i <= 1) ? 'bg-tm-red text-white' : 'bg-tm-border text-tm-gray-mid'
-            }`}>{i + 1}</div>
-            <span className={`text-xs font-sans font-bold uppercase tracking-wider ${step === 'payment' || i === 0 ? 'text-tm-black' : 'text-tm-gray-mid'}`}>{s}</span>
-            {i < 1 && <div className={`h-px w-16 ${step === 'payment' ? 'bg-tm-red' : 'bg-tm-border'}`} />}
-          </div>
-        ))}
+      {/* Progress stepper */}
+      <div className="flex items-center mb-10">
+        {['Shipping', 'Payment'].map((s, i) => {
+          const isActive = (step === 'shipping' && i === 0) || (step === 'payment' && i <= 1);
+          const isCompleted = step === 'payment' && i === 0;
+          return (
+            <div key={s} className="flex items-center">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-sans transition-all duration-300 ${
+                  isCompleted
+                    ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-md shadow-green-500/25'
+                    : isActive
+                      ? 'bg-gradient-to-br from-tm-red to-red-600 text-white shadow-md shadow-red-500/25'
+                      : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {isCompleted ? <Check className="w-3.5 h-3.5" /> : i + 1}
+                </div>
+                <span className={`text-xs font-sans font-bold uppercase tracking-wider transition-colors ${
+                  isActive ? 'text-gray-800' : 'text-gray-400'
+                }`}>{s}</span>
+              </div>
+              {i < 1 && (
+                <div className="w-20 h-[2px] mx-4 bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-500 ${
+                    step === 'payment' ? 'w-full bg-gradient-to-r from-green-400 to-tm-red' : 'w-0'
+                  }`} />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -404,8 +553,13 @@ export default function CheckoutPage() {
 
           {/* ── STEP 1: Shipping ── */}
           {step === 'shipping' && (
-            <div className="border border-tm-border p-6 md:p-8">
-              <h2 className="font-sans font-black uppercase tracking-widest text-sm mb-6">Shipping Information</h2>
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center">
+                  <ArrowLeft className="w-4 h-4 text-blue-600 rotate-180" />
+                </div>
+                <h2 className="font-sans font-black uppercase tracking-widest text-sm">Shipping Information</h2>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { label: 'Full Name', key: 'name', type: 'text', colSpan: 2 },
@@ -416,22 +570,21 @@ export default function CheckoutPage() {
                   { label: 'Phone Number', key: 'phone', type: 'tel', colSpan: 1 },
                 ].map(({ label, key, type, colSpan }) => (
                   <div key={key} className={colSpan === 2 ? 'sm:col-span-2' : ''}>
-                    <label className="block text-xs font-sans font-bold uppercase tracking-widest mb-1.5">{label}</label>
+                    <label className="block text-[11px] font-sans font-bold uppercase tracking-widest mb-1.5 text-gray-500">{label}</label>
                     <input type={type} value={shippingForm[key as keyof typeof shippingForm]}
                       onChange={(e) => setShippingForm({ ...shippingForm, [key]: e.target.value })}
-                      className={`input-base ${errors[key] ? 'border-tm-red' : ''}`} />
+                      className={`w-full border bg-white px-4 py-3 text-sm font-body focus:outline-none transition-all rounded-xl placeholder-gray-300 ${errors[key] ? 'border-tm-red' : 'border-gray-200 focus:border-gray-800 focus:shadow-sm'}`} />
                     {errors[key] && <p className="text-xs text-tm-red mt-1 font-body">{errors[key]}</p>}
                   </div>
                 ))}
               </div>
               <button onClick={() => {
                 if (validateShipping()) {
-                  // Save shipping info for next time
                   localStorage.setItem('tm_shipping_info', JSON.stringify(shippingForm));
                   trackCheckoutStart(grandTotal, items.length, user?.email ?? 'guest');
                   setStep('payment');
                 }
-              }} className="btn-primary mt-6">
+              }} className="btn-primary mt-6 rounded-xl w-full sm:w-auto">
                 Continue to Payment
               </button>
             </div>
@@ -441,42 +594,54 @@ export default function CheckoutPage() {
           {step === 'payment' && (
             <div className="space-y-5">
               {/* Payment method selector */}
-              <div className="border border-tm-border p-6">
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
                 <h2 className="font-sans font-black uppercase tracking-widest text-sm mb-5">Select Payment Method</h2>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setPaymentMethod('card')}
-                    className={`flex items-center gap-3 px-4 py-4 border-2 text-left transition-all ${
-                      paymentMethod === 'card' ? 'border-tm-red bg-red-50' : 'border-tm-border hover:border-tm-gray-mid'
+                    className={`flex items-center gap-3 px-4 py-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      paymentMethod === 'card'
+                        ? 'border-tm-red bg-gradient-to-br from-red-50/80 to-white shadow-sm shadow-red-500/10'
+                        : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
                     }`}
                   >
-                    <CreditCard className={`w-5 h-5 flex-shrink-0 ${paymentMethod === 'card' ? 'text-tm-red' : 'text-tm-gray-mid'}`} />
-                    <div>
-                      <p className="font-sans font-black text-xs uppercase tracking-wider">Card Payment</p>
-                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">Visa · Mastercard · Amex</p>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                      paymentMethod === 'card' ? 'bg-tm-red shadow-md shadow-red-500/20' : 'bg-gray-100'
+                    }`}>
+                      <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-white' : 'text-gray-400'}`} />
                     </div>
-                    {paymentMethod === 'card' && <CheckCircle className="w-4 h-4 text-tm-red ml-auto flex-shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-sans font-black text-xs uppercase tracking-wider">Card Payment</p>
+                      <p className="text-[10px] text-gray-400 font-body mt-0.5">Visa · Mastercard · Amex</p>
+                    </div>
+                    {paymentMethod === 'card' && <CheckCircle className="w-5 h-5 text-tm-red flex-shrink-0" />}
                   </button>
 
                   <button
                     onClick={() => { setPaymentMethod('crypto'); fetchPrices(); }}
-                    className={`flex items-center gap-3 px-4 py-4 border-2 text-left transition-all ${
-                      paymentMethod === 'crypto' ? 'border-tm-red bg-red-50' : 'border-tm-border hover:border-tm-gray-mid'
+                    className={`flex items-center gap-3 px-4 py-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      paymentMethod === 'crypto'
+                        ? 'border-purple-400 bg-gradient-to-br from-purple-50/80 to-white shadow-sm shadow-purple-500/10'
+                        : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
                     }`}
                   >
-                    <Coins className={`w-5 h-5 flex-shrink-0 ${paymentMethod === 'crypto' ? 'text-tm-red' : 'text-tm-gray-mid'}`} />
-                    <div>
-                      <p className="font-sans font-black text-xs uppercase tracking-wider">Pay with Crypto</p>
-                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">BTC · ETH · SOL · USDT</p>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                      paymentMethod === 'crypto' ? 'bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md shadow-purple-500/20' : 'bg-gray-100'
+                    }`}>
+                      <Coins className={`w-5 h-5 ${paymentMethod === 'crypto' ? 'text-white' : 'text-gray-400'}`} />
                     </div>
-                    {paymentMethod === 'crypto' && <CheckCircle className="w-4 h-4 text-tm-red ml-auto flex-shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-sans font-black text-xs uppercase tracking-wider">Pay with Crypto</p>
+                      <p className="text-[10px] text-gray-400 font-body mt-0.5">BTC · ETH · SOL · USDT</p>
+                    </div>
+                    {paymentMethod === 'crypto' && <CheckCircle className="w-5 h-5 text-purple-500 flex-shrink-0" />}
                   </button>
                 </div>
               </div>
 
               {/* ── Card Form ── */}
               {paymentMethod === 'card' && (
-                <div className="border border-tm-border p-6 md:p-8">
+                <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8">
                   {/* Secure header */}
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="font-sans font-black uppercase tracking-widest text-sm">Payment Details</h2>
@@ -542,27 +707,20 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  {/* Cards accepted */}
-                  <div className="flex items-center gap-3 mt-5 mb-5 py-3 border-t border-b border-gray-100">
-                    <span className="text-[10px] text-gray-400 font-sans font-bold uppercase tracking-widest">Accepted:</span>
-                    <div className="flex items-center gap-2">
-                      {['Visa', 'Mastercard', 'Amex'].map((c) => (
-                        <span key={c} className="text-[10px] font-sans font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{c}</span>
-                      ))}
-                    </div>
-                  </div>
+
+
 
                   {/* Action buttons */}
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => setStep('shipping')} className="flex items-center gap-1.5 text-sm font-body text-tm-gray-mid hover:text-tm-black transition-colors">
-                      <ArrowLeft className="w-4 h-4" /> Back
-                    </button>
+                  <div className="flex flex-col gap-3 mt-6">
                     <button onClick={handleCardPayment} disabled={loading}
-                      className={`flex-1 btn-primary flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                      className={`w-full btn-primary flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
                       {loading
                         ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing securely...</>
                         : <><Lock className="w-4 h-4" /> Pay {formatPrice(grandTotal)}</>
                       }
+                    </button>
+                    <button onClick={() => setStep('shipping')} className="flex items-center justify-center gap-1.5 text-sm font-body text-tm-gray-mid hover:text-tm-black transition-colors py-2">
+                      <ArrowLeft className="w-4 h-4" /> Back to Shipping
                     </button>
                   </div>
 
@@ -577,138 +735,310 @@ export default function CheckoutPage() {
 
               {/* ── Crypto Panel ── */}
               {paymentMethod === 'crypto' && (
-                <div className="border border-tm-border p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="font-sans font-black uppercase tracking-widest text-sm">Crypto Payment</h2>
+                <div className="border border-gray-100 rounded-2xl p-6 md:p-8 bg-white shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center">
+                        <Coins className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <h2 className="font-sans font-black uppercase tracking-widest text-sm">Pay with Crypto</h2>
+                    </div>
                     <button onClick={fetchPrices} disabled={pricesLoading}
-                      className="flex items-center gap-1.5 text-xs text-tm-gray-mid hover:text-tm-black transition-colors font-body">
+                      className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-600 transition-colors font-sans font-bold uppercase tracking-wider bg-gray-50 hover:bg-gray-100 rounded-full px-3 py-1.5">
                       <RefreshCw className={`w-3 h-3 ${pricesLoading ? 'animate-spin' : ''}`} />
-                      {pricesLoading ? 'Updating...' : 'Refresh rates'}
+                      {pricesLoading ? 'Updating' : 'Refresh'}
                     </button>
                   </div>
 
-                  {/* Coin selector */}
-                  <div className="grid grid-cols-4 gap-3 mb-6">
+                  {/* Coin selector — premium glassmorphism cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                     {(Object.keys(CRYPTO_WALLETS) as CryptoSymbol[]).map((sym) => {
                       const w = CRYPTO_WALLETS[sym];
                       const isActive = selectedCoin === sym;
+                      const price = cryptoPrices[w.geckoId];
+                      const formattedPrice = price
+                        ? price >= 1000
+                          ? `$${(price / 1000).toFixed(1)}k`
+                          : price >= 1
+                            ? `$${price.toFixed(2)}`
+                            : `$${price.toFixed(4)}`
+                        : '—';
                       return (
                         <button
                           key={sym}
                           onClick={() => setSelectedCoin(sym)}
-                          className={`relative flex flex-col items-center gap-2 py-4 px-2 rounded-xl border-2 transition-all duration-200 ${
-                            isActive
-                              ? 'border-transparent shadow-lg scale-[1.03]'
-                              : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
-                          }`}
-                          style={isActive ? {
-                            borderColor: w.color,
-                            background: `linear-gradient(135deg, ${w.color}08 0%, ${w.color}15 100%)`,
-                            boxShadow: `0 4px 20px ${w.color}25`,
-                          } : {}}
+                          className="group relative overflow-hidden rounded-2xl transition-all duration-300 focus:outline-none"
+                          style={{
+                            transform: isActive ? 'scale(1.04)' : 'scale(1)',
+                            boxShadow: isActive
+                              ? `0 8px 32px ${w.color}30, 0 0 0 2px ${w.color}`
+                              : '0 1px 4px rgba(0,0,0,0.06)',
+                          }}
                         >
-                          {/* Logo circle */}
+                          {/* Background gradient */}
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                              isActive ? 'shadow-md' : ''
-                            }`}
+                            className="absolute inset-0 transition-opacity duration-300"
                             style={{
-                              backgroundColor: isActive ? w.color : `${w.color}15`,
+                              background: isActive
+                                ? `linear-gradient(160deg, ${w.color}18 0%, ${w.color}08 50%, ${w.color}15 100%)`
+                                : 'linear-gradient(160deg, #fafafa 0%, #ffffff 100%)',
+                              opacity: 1,
                             }}
-                          >
-                            <img
-                              src={w.logo}
-                              alt={w.name}
-                              className="w-5 h-5"
-                              style={{ filter: isActive ? 'brightness(10)' : 'none' }}
-                            />
-                          </div>
-                          {/* Label */}
-                          <div className="text-center">
-                            <p className={`text-xs font-sans font-black uppercase tracking-wider ${
-                              isActive ? 'text-tm-navy' : 'text-gray-600'
-                            }`}>{sym}</p>
-                            <p className="text-[10px] text-gray-400 font-body mt-0.5">{w.network.split(' ')[0]}</p>
-                          </div>
-                          {/* Active indicator dot */}
+                          />
+
+                          {/* Animated glow ring for active */}
                           {isActive && (
                             <div
-                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center shadow-sm"
-                              style={{ backgroundColor: w.color }}
+                              className="absolute inset-0 rounded-2xl"
+                              style={{
+                                background: `radial-gradient(circle at 50% 0%, ${w.color}20 0%, transparent 70%)`,
+                                animation: 'cryptoPulse 2s ease-in-out infinite',
+                              }}
+                            />
+                          )}
+
+                          {/* Border overlay */}
+                          <div
+                            className="absolute inset-0 rounded-2xl transition-all duration-300"
+                            style={{
+                              border: isActive ? `2px solid ${w.color}` : '1px solid #e5e7eb',
+                            }}
+                          />
+
+                          {/* Content */}
+                          <div className="relative z-10 flex flex-col items-center py-5 px-3 gap-2.5">
+                            {/* Coin logo with ambient glow */}
+                            <div className="relative">
+                              {isActive && (
+                                <div
+                                  className="absolute inset-0 rounded-full blur-lg opacity-40"
+                                  style={{ backgroundColor: w.color, transform: 'scale(1.6)' }}
+                                />
+                              )}
+                              <div
+                                className="relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
+                                style={{
+                                  backgroundColor: isActive ? w.color : `${w.color}12`,
+                                  boxShadow: isActive ? `0 4px 14px ${w.color}40` : 'none',
+                                }}
+                              >
+                                <img
+                                  src={w.logo}
+                                  alt={w.name}
+                                  className="w-6 h-6 transition-all duration-300"
+                                  style={{
+                                    filter: isActive ? 'brightness(10)' : 'none',
+                                    transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Coin name & network */}
+                            <div className="text-center">
+                              <p
+                                className="text-sm font-sans font-black uppercase tracking-wider transition-colors duration-200"
+                                style={{ color: isActive ? w.color : '#374151' }}
+                              >
+                                {sym}
+                              </p>
+                              <p className="text-[10px] text-gray-400 font-body mt-0.5 leading-tight">
+                                {w.network.split('(')[0].trim()}
+                              </p>
+                            </div>
+
+                            {/* Live price tag */}
+                            <div
+                              className="rounded-full px-2.5 py-0.5 text-[10px] font-sans font-bold transition-all duration-300"
+                              style={{
+                                backgroundColor: isActive ? `${w.color}15` : '#f3f4f6',
+                                color: isActive ? w.color : '#6b7280',
+                              }}
                             >
-                              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              {pricesLoading ? (
+                                <span className="inline-block w-8 h-3 bg-gray-200 rounded animate-pulse" />
+                              ) : (
+                                formattedPrice
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Active check badge */}
+                          {isActive && (
+                            <div
+                              className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full border-[2.5px] border-white flex items-center justify-center shadow-md"
+                              style={{
+                                backgroundColor: w.color,
+                                boxShadow: `0 2px 8px ${w.color}50`,
+                              }}
+                            >
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                               </svg>
                             </div>
                           )}
+
+                          {/* Hover shimmer effect */}
+                          <div
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                            style={{
+                              background: `linear-gradient(105deg, transparent 40%, ${w.color}08 50%, transparent 60%)`,
+                            }}
+                          />
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* Amount to send */}
-                  <div className="bg-tm-gray border border-tm-border p-4 mb-6 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-tm-gray-mid font-body">Send exactly</p>
-                      <p className="font-sans font-black text-2xl mt-0.5" style={{ color: currentWallet.color }}>
-                        {pricesLoading ? '...' : getCryptoAmount(selectedCoin)} {selectedCoin}
-                      </p>
-                      <p className="text-xs text-tm-gray-mid font-body mt-0.5">≈ {formatPrice(grandTotal)} USD</p>
-                    </div>
-                    <div className="text-right text-xs font-body text-tm-gray-mid">
-                      <p>Network</p>
-                      <p className="font-bold text-tm-black">{currentWallet.network}</p>
+                  {/* Amount to send — premium gradient card */}
+                  <div
+                    className="relative overflow-hidden rounded-xl p-5 mb-6"
+                    style={{
+                      background: `linear-gradient(135deg, ${currentWallet.color}12 0%, ${currentWallet.color}06 40%, #fafafa 100%)`,
+                      border: `1px solid ${currentWallet.color}25`,
+                    }}
+                  >
+                    {/* Decorative circle */}
+                    <div
+                      className="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-[0.07]"
+                      style={{ backgroundColor: currentWallet.color }}
+                    />
+                    <div className="relative z-10 flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] text-gray-500 font-body uppercase tracking-wider font-medium">Send exactly</p>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <p className="font-sans font-black text-3xl tracking-tight" style={{ color: currentWallet.color }}>
+                            {pricesLoading ? (
+                              <span className="inline-block w-32 h-8 bg-gray-200 rounded animate-pulse" />
+                            ) : (
+                              getCryptoAmount(selectedCoin)
+                            )}
+                          </p>
+                          <span className="font-sans font-black text-lg text-gray-400">{selectedCoin}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 font-body mt-1 flex items-center gap-1.5">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: currentWallet.color }} />
+                          ≈ {formatPrice(grandTotal)} USD
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center mb-2 mx-auto"
+                          style={{
+                            backgroundColor: `${currentWallet.color}15`,
+                            boxShadow: `0 4px 12px ${currentWallet.color}15`,
+                          }}
+                        >
+                          <img src={currentWallet.logo} alt={currentWallet.name} className="w-7 h-7" />
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-body">Network</p>
+                        <p className="text-xs font-sans font-bold text-gray-700">{currentWallet.network}</p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* QR code */}
+                  {/* QR code — premium container */}
                   <div className="flex flex-col items-center mb-6">
-                    <p className="text-xs font-body text-tm-gray-mid mb-4">Scan QR code with your crypto wallet app</p>
-                    <QRCode value={currentWallet.address} size={220} />
-                    <p className="text-xs text-tm-gray-mid font-body mt-3">or send to the address below</p>
+                    <p className="text-xs font-sans font-bold uppercase tracking-wider text-gray-400 mb-4">
+                      Scan with your wallet app
+                    </p>
+                    <div
+                      className="relative p-3 rounded-2xl"
+                      style={{
+                        background: `linear-gradient(135deg, ${currentWallet.color}10, transparent, ${currentWallet.color}08)`,
+                        boxShadow: `0 4px 24px ${currentWallet.color}12`,
+                      }}
+                    >
+                      <div className="bg-white rounded-xl p-2 shadow-sm">
+                        <QRCode value={currentWallet.address} size={200} />
+                      </div>
+                      {/* Corner accents */}
+                      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 rounded-tl-2xl" style={{ borderColor: currentWallet.color }} />
+                      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 rounded-tr-2xl" style={{ borderColor: currentWallet.color }} />
+                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 rounded-bl-2xl" style={{ borderColor: currentWallet.color }} />
+                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 rounded-br-2xl" style={{ borderColor: currentWallet.color }} />
+                    </div>
+                    <div className="flex items-center gap-2 mt-4">
+                      <div className="h-px w-8 bg-gray-200" />
+                      <p className="text-[10px] text-gray-400 font-sans font-bold uppercase tracking-widest">or paste address</p>
+                      <div className="h-px w-8 bg-gray-200" />
+                    </div>
                   </div>
 
-                  {/* Wallet address */}
-                  <div className="border border-tm-border p-3 mb-2">
-                    <p className="text-xs text-tm-gray-mid font-body mb-1.5">{currentWallet.name} Address ({currentWallet.network})</p>
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-mono text-xs text-tm-black break-all leading-relaxed">{currentWallet.address}</p>
+                  {/* Wallet address — enhanced */}
+                  <div
+                    className="rounded-xl border p-4 mb-2"
+                    style={{ borderColor: `${currentWallet.color}30` }}
+                  >
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${currentWallet.color}15` }}
+                      >
+                        <img src={currentWallet.logo} alt="" className="w-3 h-3" />
+                      </div>
+                      <p className="text-[11px] text-gray-500 font-sans font-bold uppercase tracking-wider">
+                        {currentWallet.name} Address
+                      </p>
+                      <span className="text-[9px] font-sans font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${currentWallet.color}12`, color: currentWallet.color }}>
+                        {currentWallet.network}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 bg-gray-50 rounded-lg p-3">
+                      <p className="font-mono text-[11px] text-gray-700 break-all leading-relaxed select-all">{currentWallet.address}</p>
                       <div className="flex-shrink-0">
                         <CopyButton text={currentWallet.address} />
                       </div>
                     </div>
                   </div>
 
-                  {/* Warning */}
-                  <div className="bg-amber-50 border border-amber-200 p-3 mb-6 flex gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  {/* Warning — refined */}
+                  <div className="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3.5 mb-6 flex gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                    </div>
                     <p className="text-xs text-amber-800 font-body leading-relaxed">
                       <strong>Send only {selectedCoin} on the {currentWallet.network}.</strong> Sending other assets or using the wrong network will result in permanent loss.
                     </p>
                   </div>
 
-                  {/* Instructions */}
-                  <ol className="text-xs font-body text-tm-gray-dark space-y-1.5 mb-6 list-decimal list-inside">
-                    <li>Open your crypto wallet app</li>
-                    <li>Scan the QR code above or paste the {selectedCoin} address</li>
-                    <li>Send exactly <strong>{pricesLoading ? '...' : getCryptoAmount(selectedCoin)} {selectedCoin}</strong></li>
-                    <li>Once sent, click <strong>"I've Paid"</strong> below to confirm your order</li>
-                  </ol>
+                  {/* Instructions — visual steps */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    {[
+                      { step: '1', text: 'Open your crypto wallet app' },
+                      { step: '2', text: `Scan the QR or paste the ${selectedCoin} address` },
+                      { step: '3', text: `Send exactly ${pricesLoading ? '...' : getCryptoAmount(selectedCoin)} ${selectedCoin}` },
+                      { step: '4', text: 'Click "I\'ve Paid" to confirm your order' },
+                    ].map(({ step, text }) => (
+                      <div key={step} className="flex items-start gap-3 bg-gray-50/80 rounded-xl p-3">
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-sans font-black text-white"
+                          style={{ backgroundColor: currentWallet.color }}
+                        >
+                          {step}
+                        </div>
+                        <p className="text-xs text-gray-600 font-body leading-relaxed pt-0.5">{text}</p>
+                      </div>
+                    ))}
+                  </div>
 
-                  <div className="flex gap-3">
-                    <button onClick={() => setStep('shipping')} className="flex items-center gap-1 text-sm font-body text-tm-gray-mid hover:text-tm-black transition-colors">
-                      <ArrowLeft className="w-4 h-4" /> Back
-                    </button>
+                  <div className="flex flex-col gap-3">
                     <button onClick={handleCryptoPaid} disabled={loading}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 font-sans font-black uppercase tracking-wider text-sm text-white transition-all ${
-                        loading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'
+                      className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-6 font-sans font-black uppercase tracking-wider text-sm text-white rounded-xl transition-all duration-300 ${
+                        loading ? 'opacity-70 cursor-not-allowed' : 'hover:brightness-110 hover:shadow-lg'
                       }`}
-                      style={{ backgroundColor: currentWallet.color }}
+                      style={{
+                        backgroundColor: currentWallet.color,
+                        boxShadow: `0 4px 20px ${currentWallet.color}35`,
+                      }}
                     >
                       {loading
                         ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Confirming...</>
                         : <><CheckCircle className="w-4 h-4" /> I&apos;ve Paid — {getCryptoAmount(selectedCoin)} {selectedCoin}</>
                       }
+                    </button>
+                    <button onClick={() => setStep('shipping')} className="flex items-center justify-center gap-1.5 text-sm font-body text-gray-400 hover:text-gray-700 transition-colors py-2">
+                      <ArrowLeft className="w-4 h-4" /> Back to Shipping
                     </button>
                   </div>
                 </div>
