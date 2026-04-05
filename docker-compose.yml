@@ -41,9 +41,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # Uncomment after setting up SSL:
-      # - ./nginx/certbot/conf:/etc/letsencrypt:ro
-      # - ./nginx/certbot/www:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
     depends_on:
       - backend
       - frontend
