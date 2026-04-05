@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   required
-                  placeholder="123456"
+                  placeholder="– – – – – –"
                   className="input-base text-center text-2xl tracking-[0.5em] font-mono"
                   maxLength={6}
                 />

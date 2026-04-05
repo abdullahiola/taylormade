@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   },
   description: 'Shop premium Charley Stores golf clubs, balls, bags, and accessories. Fast delivery across South Africa.',
   keywords: 'Charley Stores, golf, clubs, drivers, irons, putters, golf balls, South Africa',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

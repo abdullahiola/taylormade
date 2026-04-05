@@ -194,7 +194,7 @@ export default function SignupPage() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   required
-                  placeholder="000000"
+                  placeholder="– – – – – –"
                   maxLength={6}
                   className="input-base text-center text-3xl font-black tracking-[0.5em] font-sans py-4"
                   autoComplete="one-time-code"
