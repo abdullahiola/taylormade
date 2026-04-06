@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     default: 'Charley Stores – Premium Golf Equipment',
     template: '%s | Charley Stores',
   },
-  description: 'Shop premium Charley Stores golf clubs, balls, bags, and accessories. Fast delivery across South Africa.',
-  keywords: 'Charley Stores, golf, clubs, drivers, irons, putters, golf balls, South Africa',
+  description: 'Shop premium Charley Stores golf clubs, balls, bags, and accessories. Fast delivery available worldwide.',
+  keywords: 'Charley Stores, golf, clubs, drivers, irons, putters, golf balls',
   icons: {
     icon: [
       { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
