@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Trophy, Car, Percent, Clock } from 'lucide-react';
+import { X, Sparkles, Trophy, Car, Percent /*, Clock */ } from 'lucide-react';
 import { isPromoActive, PROMO, promoTimeLeft } from '@/lib/products';
 import Link from 'next/link';
 
 export default function WelcomePopup() {
   const [show, setShow] = useState(false);
-  const [timeLeft, setTimeLeft] = useState('');
+  // const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
     if (sessionStorage.getItem('cs_welcome_seen')) return;
@@ -15,13 +15,13 @@ export default function WelcomePopup() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Update countdown every minute
-  useEffect(() => {
-    if (!show) return;
-    setTimeLeft(promoTimeLeft());
-    const interval = setInterval(() => setTimeLeft(promoTimeLeft()), 60000);
-    return () => clearInterval(interval);
-  }, [show]);
+  // Update countdown every minute — commented out for now
+  // useEffect(() => {
+  //   if (!show) return;
+  //   setTimeLeft(promoTimeLeft());
+  //   const interval = setInterval(() => setTimeLeft(promoTimeLeft()), 60000);
+  //   return () => clearInterval(interval);
+  // }, [show]);
 
   const dismiss = () => {
     setShow(false);
@@ -80,13 +80,13 @@ export default function WelcomePopup() {
                 Welcome to Charley Stores — the official home of premium golf equipment
               </p>
 
-              {/* Countdown */}
-              {timeLeft && (
+              {/* Countdown — commented out for now */}
+              {/* {timeLeft && (
                 <div className="mt-4 inline-flex items-center gap-1.5 bg-white/10 text-white/80 text-xs font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
                   <Clock className="w-3 h-3" />
                   {timeLeft}
                 </div>
-              )}
+              )} */}
             </>
           ) : (
             <>
