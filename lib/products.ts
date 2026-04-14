@@ -16,6 +16,35 @@ export function formatPrice(price: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(price);
 }
 
+// ── 20% OFF SITEWIDE PROMO ────────────────────────────────────
+export const PROMO = {
+  discountPercent: 20,
+  startDate: new Date('2026-04-14T00:00:00'),
+  endDate:   new Date('2026-04-21T23:59:59'),
+  label: '20% OFF EVERYTHING',
+  code: 'CHARLEY20',
+};
+
+export function isPromoActive(): boolean {
+  const now = new Date();
+  return now >= PROMO.startDate && now <= PROMO.endDate;
+}
+
+export function getDiscountedPrice(originalPrice: number): number {
+  if (!isPromoActive()) return originalPrice;
+  return Math.round(originalPrice * (1 - PROMO.discountPercent / 100));
+}
+
+export function promoTimeLeft(): string {
+  if (!isPromoActive()) return '';
+  const now = new Date();
+  const diff = PROMO.endDate.getTime() - now.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  if (days > 0) return `${days}d ${hours}h left`;
+  return `${hours}h left`;
+}
+
 export const products: Product[] = [
   // ── CLUB SETS ─────────────────────────────────────────────────
   {

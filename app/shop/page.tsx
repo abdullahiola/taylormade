@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Filter, SlidersHorizontal, X } from 'lucide-react';
-import { products, categories, formatPrice, Product } from '@/lib/products';
+import { products, categories, formatPrice, Product, getDiscountedPrice, isPromoActive } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 import ItemRequestForm from '@/components/ItemRequestForm';
 
@@ -48,11 +48,17 @@ function ProductCard({ product }: { product: Product }) {
         <p className="text-xs text-tm-gray-mid font-body mt-2 line-clamp-2">{product.description}</p>
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-tm-border">
           <div>
-            <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
-
+            {isPromoActive() ? (
+              <>
+                <span className="font-sans font-black text-base text-tm-red">{formatPrice(getDiscountedPrice(product.price))}</span>
+                <span className="font-sans text-xs text-tm-gray-mid line-through ml-1">{formatPrice(product.price)}</span>
+              </>
+            ) : (
+              <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
+            )}
           </div>
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category }); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ id: product.id, name: product.name, price: getDiscountedPrice(product.price), image: product.image, category: product.category }); }}
             className="bg-tm-black text-white text-xs font-sans font-bold uppercase tracking-widest px-4 py-2 hover:bg-tm-red transition-colors"
           >
             Add

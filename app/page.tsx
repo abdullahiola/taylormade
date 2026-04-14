@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Star, ShieldCheck, Truck, RefreshCw, PenLine, Car } from 'lucide-react';
-import { products, formatPrice } from '@/lib/products';
+import { products, formatPrice, getDiscountedPrice, isPromoActive } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 
 const featuredProducts = products.filter((p) => p.badge === 'Best Seller').slice(0, 4);
@@ -39,7 +39,7 @@ function ProductCard({ product }: { product: typeof products[0] }) {
 
         <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category }); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ id: product.id, name: product.name, price: getDiscountedPrice(product.price), image: product.image, category: product.category }); }}
             className="btn-primary w-full text-center"
           >
             Add to Cart
@@ -52,8 +52,14 @@ function ProductCard({ product }: { product: typeof products[0] }) {
           {product.name}
         </h3>
         <div className="flex items-center gap-2 mt-2">
-          <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
-
+          {isPromoActive() ? (
+            <>
+              <span className="font-sans font-black text-base text-tm-red">{formatPrice(getDiscountedPrice(product.price))}</span>
+              <span className="font-sans text-xs text-tm-gray-mid line-through">{formatPrice(product.price)}</span>
+            </>
+          ) : (
+            <span className="font-sans font-black text-base text-tm-red">{formatPrice(product.price)}</span>
+          )}
         </div>
       </div>
     </Link>
@@ -185,10 +191,10 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <p className="text-center text-[10px] font-sans font-bold uppercase tracking-[0.35em] text-gray-500 mb-10">Why Shop With Us</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
-              { icon: PenLine, title: 'Personally Signed', desc: 'Every item signed by Charley Hull herself', gradient: 'from-purple-500/20 to-fuchsia-500/20', iconColor: 'text-purple-400', borderColor: 'border-purple-500/10', hoverGlow: 'hover:shadow-purple-500/5' },
-              { icon: Car, title: '1-on-1 With Charley', desc: 'Golf car buyers get a private session', gradient: 'from-rose-500/20 to-pink-500/20', iconColor: 'text-rose-400', borderColor: 'border-rose-500/10', hoverGlow: 'hover:shadow-rose-500/5' },
+              // { icon: PenLine, title: 'Personally Signed', desc: 'Every item signed by Charley Hull herself', gradient: 'from-purple-500/20 to-fuchsia-500/20', iconColor: 'text-purple-400', borderColor: 'border-purple-500/10', hoverGlow: 'hover:shadow-purple-500/5' },
+              // { icon: Car, title: '1-on-1 With Charley', desc: 'Golf car buyers get a private session', gradient: 'from-rose-500/20 to-pink-500/20', iconColor: 'text-rose-400', borderColor: 'border-rose-500/10', hoverGlow: 'hover:shadow-rose-500/5' },
               { icon: Truck, title: 'Free Shipping', desc: 'Free shipping on first time purchase', gradient: 'from-red-500/20 to-orange-500/20', iconColor: 'text-red-400', borderColor: 'border-red-500/10', hoverGlow: 'hover:shadow-red-500/5' },
               { icon: RefreshCw, title: 'Easy Returns', desc: '30-day return policy', gradient: 'from-blue-500/20 to-cyan-500/20', iconColor: 'text-blue-400', borderColor: 'border-blue-500/10', hoverGlow: 'hover:shadow-blue-500/5' },
               { icon: ShieldCheck, title: 'Authentic Gear', desc: '100% genuine products', gradient: 'from-emerald-500/20 to-green-500/20', iconColor: 'text-emerald-400', borderColor: 'border-emerald-500/10', hoverGlow: 'hover:shadow-emerald-500/5' },

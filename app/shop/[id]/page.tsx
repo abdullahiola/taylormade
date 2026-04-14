@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, ArrowLeft, Check, Package, Star, Eye } from 'lucide-react';
-import { products, formatPrice } from '@/lib/products';
+import { products, formatPrice, getDiscountedPrice, isPromoActive, PROMO } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 import ItemRequestForm from '@/components/ItemRequestForm';
 
@@ -59,7 +59,7 @@ export default function ProductDetailPage() {
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: getDiscountedPrice(product.price),
       image: product.image,
       category: product.category,
     });
@@ -149,7 +149,17 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-tm-border">
-              <span className="font-sans font-black text-3xl">{formatPrice(product.price)}</span>
+              {isPromoActive() ? (
+                <>
+                  <span className="font-sans font-black text-3xl text-tm-red">{formatPrice(getDiscountedPrice(product.price))}</span>
+                  <span className="font-sans text-lg text-tm-gray-mid line-through">{formatPrice(product.price)}</span>
+                  <span className="bg-red-500 text-white text-xs font-sans font-bold uppercase tracking-wider px-2 py-1 rounded">
+                    {PROMO.discountPercent}% OFF
+                  </span>
+                </>
+              ) : (
+                <span className="font-sans font-black text-3xl">{formatPrice(product.price)}</span>
+              )}
             </div>
 
             {/* Description */}
@@ -223,7 +233,16 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-sans font-bold text-xs uppercase tracking-wide group-hover:text-tm-red transition-colors">{p.name}</h3>
-                    <p className="font-sans font-black text-sm mt-1">{formatPrice(p.price)}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {isPromoActive() ? (
+                        <>
+                          <span className="font-sans font-black text-sm text-tm-red">{formatPrice(getDiscountedPrice(p.price))}</span>
+                          <span className="font-sans text-xs text-tm-gray-mid line-through">{formatPrice(p.price)}</span>
+                        </>
+                      ) : (
+                        <span className="font-sans font-black text-sm">{formatPrice(p.price)}</span>
+                      )}
+                    </div>
                   </div>
                 </Link>
               ))}

@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Trophy, Car } from 'lucide-react';
+import { X, Sparkles, Trophy, Car, Percent, Clock } from 'lucide-react';
+import { isPromoActive, PROMO, promoTimeLeft } from '@/lib/products';
+import Link from 'next/link';
 
 export default function WelcomePopup() {
   const [show, setShow] = useState(false);
+  const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
     if (sessionStorage.getItem('cs_welcome_seen')) return;
@@ -12,12 +15,22 @@ export default function WelcomePopup() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Update countdown every minute
+  useEffect(() => {
+    if (!show) return;
+    setTimeLeft(promoTimeLeft());
+    const interval = setInterval(() => setTimeLeft(promoTimeLeft()), 60000);
+    return () => clearInterval(interval);
+  }, [show]);
+
   const dismiss = () => {
     setShow(false);
     sessionStorage.setItem('cs_welcome_seen', '1');
   };
 
   if (!show) return null;
+
+  const promoActive = isPromoActive();
 
   return (
     <div
@@ -44,25 +57,59 @@ export default function WelcomePopup() {
             <X className="w-4 h-4 text-white/70" />
           </button>
 
-          {/* Icon */}
-          <div className="relative inline-flex mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
-          </div>
+          {promoActive ? (
+            <>
+              {/* Promo Icon */}
+              <div className="relative inline-flex mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30 animate-pulse">
+                  <Percent className="w-8 h-8 text-white" />
+                </div>
+              </div>
 
-          <h2 className="text-white font-sans font-black uppercase tracking-[0.1em] text-xl mb-2">
-            Welcome to Charley Stores
-          </h2>
-          <p className="text-gray-400 text-sm font-body leading-relaxed">
-            The official home of premium golf equipment
-          </p>
+              <div className="inline-block bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-sans font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full mb-3">
+                Limited Time Offer
+              </div>
+
+              <h2 className="text-white font-sans font-black uppercase tracking-[0.1em] text-3xl mb-1">
+                {PROMO.discountPercent}% OFF
+              </h2>
+              <p className="text-red-400 font-sans font-bold uppercase tracking-wider text-sm mb-2">
+                Everything Sitewide
+              </p>
+              <p className="text-gray-400 text-sm font-body leading-relaxed">
+                Welcome to Charley Stores — the official home of premium golf equipment
+              </p>
+
+              {/* Countdown */}
+              {timeLeft && (
+                <div className="mt-4 inline-flex items-center gap-1.5 bg-white/10 text-white/80 text-xs font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
+                  <Clock className="w-3 h-3" />
+                  {timeLeft}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Default — no promo */}
+              <div className="relative inline-flex mb-5">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h2 className="text-white font-sans font-black uppercase tracking-[0.1em] text-xl mb-2">
+                Welcome to Charley Stores
+              </h2>
+              <p className="text-gray-400 text-sm font-body leading-relaxed">
+                The official home of premium golf equipment
+              </p>
+            </>
+          )}
         </div>
 
         {/* Content */}
         <div className="px-8 py-7">
-          {/* Perk 1 */}
-          <div className="flex items-start gap-4 mb-5">
+          {/* Perk 1 — commented out */}
+          {/* <div className="flex items-start gap-4 mb-5">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500/15 to-yellow-500/15 flex items-center justify-center flex-shrink-0">
               <Trophy className="w-5 h-5 text-amber-500" />
             </div>
@@ -74,13 +121,13 @@ export default function WelcomePopup() {
                 Every item you purchase will be personally signed by Charley Hull herself — making each piece a genuine collector&apos;s item.
               </p>
             </div>
-          </div>
+          </div> */}
 
-          {/* Divider */}
-          <div className="h-px bg-gray-100 mb-5" />
+          {/* Divider — commented out */}
+          {/* <div className="h-px bg-gray-100 mb-5" /> */}
 
-          {/* Perk 2 */}
-          <div className="flex items-start gap-4 mb-6">
+          {/* Perk 2 — commented out */}
+          {/* <div className="flex items-start gap-4 mb-6">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/15 to-green-500/15 flex items-center justify-center flex-shrink-0">
               <Car className="w-5 h-5 text-emerald-500" />
             </div>
@@ -92,15 +139,16 @@ export default function WelcomePopup() {
                 Golf car purchasers will be given a chance to have a one-on-one session with Charley Hull — a once-in-a-lifetime experience!
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* CTA */}
-          <button
+          <Link
+            href="/shop"
             onClick={dismiss}
             className="block w-full text-center bg-gradient-to-r from-red-600 to-red-500 text-white font-sans font-black uppercase tracking-wider text-sm py-3.5 rounded-xl hover:brightness-110 transition-all shadow-lg shadow-red-500/20"
           >
-            Start Shopping
-          </button>
+            {promoActive ? `Shop Now — ${PROMO.discountPercent}% Off Everything` : 'Start Shopping'}
+          </Link>
 
           <p className="text-center text-[10px] text-gray-400 font-body mt-4">
             Free shipping on your first purchase · 30-day returns
