@@ -70,7 +70,7 @@ export default function AdminOrdersPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setOrders(data);
+        setOrders(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to fetch orders', err);
