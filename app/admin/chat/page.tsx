@@ -66,7 +66,7 @@ export default function AdminChatPage() {
       } else {
         setOnline(false);
       }
-    } catch {
+    } catch (_e) {
       setOnline(false);
     }
     setLoading(false);
@@ -96,7 +96,7 @@ export default function AdminChatPage() {
         );
         setMessages(msgs);
       }
-    } catch { /* silent */ }
+    } catch (_e) { /* silent */ }
   }, []);
 
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function AdminChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: activeSessionId, message: replyText }),
       });
-    } catch { /* silent */ }
+    } catch (_e) { /* silent */ }
 
     setSending(false);
     inputRef.current?.focus();
@@ -263,7 +263,7 @@ export default function AdminChatPage() {
                     key={id}
                     onClick={() => selectSession(id)}
                     className={`w-full text-left px-4 py-3.5 border-b border-white/5 hover:bg-white/5 transition-all relative ${
-                      isActive ? 'bg-white/8' : ''
+                      isActive ? 'bg-white/[0.08]' : ''
                     }`}
                     style={isActive ? { background: 'rgba(204,0,0,0.12)', borderLeft: '2px solid #CC0000' } : {}}
                   >
