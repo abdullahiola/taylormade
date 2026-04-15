@@ -103,16 +103,21 @@ export default function AdminPage() {
         fetch(`${API_URL}/api/admin/users`, { headers }),
         fetch(`${API_URL}/api/admin/orders`, { headers }),
       ]);
-      if (statsRes.status === 403 || usersRes.status === 403 || ordersRes.status === 403) {
+      // Redirect on auth failure
+      if (statsRes.status === 403 || statsRes.status === 401 ||
+          usersRes.status === 403 || usersRes.status === 401) {
         router.push('/');
         return;
       }
-      const statsData = await statsRes.json();
-      const usersData = await usersRes.json();
-      const ordersData = await ordersRes.json();
-      setStats(statsData);
-      setUsers(Array.isArray(usersData) ? usersData : []);
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      if (statsRes.ok) setStats(await statsRes.json());
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      }
+      if (ordersRes.ok) {
+        const ordersData = await ordersRes.json();
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+      }
     } catch (e) {
       console.error(e);
     }
