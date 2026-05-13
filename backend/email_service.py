@@ -1,46 +1,50 @@
-import smtplib
-import ssl
+import httpx
 import os
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SMTP_EMAIL = os.getenv("SMTP_EMAIL")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SMTP_HOST = os.getenv("SMTP_HOST", "mail.charleystores.shop")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
 
+RESEND_URL = "https://api.resend.com/emails"
 
-def _smtp_send(msg, to_email: str):
-    """Send an email using the configured SMTP server.
-    Uses SSL for port 465, STARTTLS for port 587."""
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-    if SMTP_PORT == 465:
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
-    else:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()
-            server.starttls(context=context)
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, msg.as_string())
+
+def _send_email(to_email: str, subject: str, html: str) -> bool:
+    """Send an email via Resend API."""
+    if not RESEND_API_KEY:
+        print("[EMAIL] ❌ RESEND_API_KEY not configured")
+        return False
+    try:
+        r = httpx.post(
+            RESEND_URL,
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": f"Charley Stores <{FROM_EMAIL}>",
+                "to": [to_email],
+                "subject": subject,
+                "html": html,
+            },
+            timeout=15.0,
+        )
+        if r.status_code == 200:
+            print(f"[EMAIL] ✅ Sent to {to_email}: {subject}")
+            return True
+        else:
+            print(f"[EMAIL] ❌ Failed ({r.status_code}): {r.text}")
+            return False
+    except Exception as e:
+        print(f"[EMAIL] ❌ Error: {type(e).__name__}: {e}")
+        return False
 
 
 def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
-    """Send a 6-digit OTP verification email via Gmail SMTP."""
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Your Charley Stores Verification Code"
-        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
-        msg["To"] = to_email
-
-        html = f"""
+    """Send a 6-digit OTP verification email."""
+    html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -82,25 +86,12 @@ def send_otp_email(to_email: str, user_name: str, otp_code: str) -> bool:
 </body>
 </html>
 """
-        msg.attach(MIMEText(html, "html"))
-
-        _smtp_send(msg, to_email)
-
-        return True
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send OTP to {to_email}: {e}")
-        return False
+    return _send_email(to_email, "Your Charley Stores Verification Code", html)
 
 
 def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> bool:
-    """Send a 6-digit password reset OTP email via Gmail SMTP."""
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Password Reset — Charley Stores"
-        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
-        msg["To"] = to_email
-
-        html = f"""
+    """Send a 6-digit password reset OTP email."""
+    html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -142,14 +133,7 @@ def send_password_reset_email(to_email: str, user_name: str, otp_code: str) -> b
 </body>
 </html>
 """
-        msg.attach(MIMEText(html, "html"))
-
-        _smtp_send(msg, to_email)
-
-        return True
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send password reset to {to_email}: {e}")
-        return False
+    return _send_email(to_email, "Password Reset — Charley Stores", html)
 
 
 def send_order_confirmation_email(
@@ -161,25 +145,19 @@ def send_order_confirmation_email(
     estimated_delivery: str,
 ) -> bool:
     """Send order confirmation email with order ID, items, and estimated delivery."""
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Order Confirmed — {order_id} | Charley Stores"
-        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
-        msg["To"] = to_email
+    # Build items rows
+    items_html = ""
+    for item in items:
+        qty = item.get("quantity", 1)
+        price = item.get("price", 0)
+        items_html += f"""
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333;">{item.get('name', 'Product')}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; text-align: center;">{qty}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333; text-align: right; font-weight: 700;">${price * qty:,.2f}</td>
+        </tr>"""
 
-        # Build items rows
-        items_html = ""
-        for item in items:
-            qty = item.get("quantity", 1)
-            price = item.get("price", 0)
-            items_html += f"""
-            <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333;">{item.get('name', 'Product')}</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; text-align: center;">{qty}</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333; text-align: right; font-weight: 700;">${price * qty:,.2f}</td>
-            </tr>"""
-
-        html = f"""
+    html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -241,7 +219,7 @@ def send_order_confirmation_email(
         <p style="margin-top: 6px;">Your order will arrive within 7 working days.</p>
       </div>
 
-      <p style="font-size: 13px; color: #888;">If you have any questions, please contact our <a href="mailto:{SMTP_EMAIL}" style="color: #E8001C;">support team</a>.</p>
+      <p style="font-size: 13px; color: #888;">If you have any questions, please contact our <a href="{FRONTEND_URL}/support" style="color: #E8001C;">support team</a>.</p>
     </div>
     <div class="footer">
       <p>&copy; Charley Stores. All rights reserved.</p>
@@ -250,14 +228,7 @@ def send_order_confirmation_email(
 </body>
 </html>
 """
-        msg.attach(MIMEText(html, "html"))
-
-        _smtp_send(msg, to_email)
-
-        return True
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send order confirmation to {to_email}: {e}")
-        return False
+    return _send_email(to_email, f"Order Confirmed — {order_id} | Charley Stores", html)
 
 
 def send_order_declined_email(
@@ -267,13 +238,7 @@ def send_order_declined_email(
     total: float,
 ) -> bool:
     """Send order declined email when card payment fails."""
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Payment Declined — {order_id} | Charley Stores"
-        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
-        msg["To"] = to_email
-
-        html = f"""
+    html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -332,14 +297,7 @@ def send_order_declined_email(
 </body>
 </html>
 """
-        msg.attach(MIMEText(html, "html"))
-
-        _smtp_send(msg, to_email)
-
-        return True
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send declined email to {to_email}: {e}")
-        return False
+    return _send_email(to_email, f"Payment Declined — {order_id} | Charley Stores", html)
 
 
 def send_order_now_successful_email(
@@ -351,25 +309,19 @@ def send_order_now_successful_email(
     estimated_delivery: str,
 ) -> bool:
     """Send email when a previously declined order is approved and now processing."""
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"Great News! Order Approved — {order_id} | Charley Stores"
-        msg["From"] = f"Charley Stores <{SMTP_EMAIL}>"
-        msg["To"] = to_email
+    # Build items rows
+    items_html = ""
+    for item in items:
+        qty = item.get("quantity", 1)
+        price = item.get("price", 0)
+        items_html += f"""
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333;">{item.get('name', 'Product')}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; text-align: center;">{qty}</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333; text-align: right; font-weight: 700;">${price * qty:,.2f}</td>
+        </tr>"""
 
-        # Build items rows
-        items_html = ""
-        for item in items:
-            qty = item.get("quantity", 1)
-            price = item.get("price", 0)
-            items_html += f"""
-            <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333;">{item.get('name', 'Product')}</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; text-align: center;">{qty}</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #333; text-align: right; font-weight: 700;">${price * qty:,.2f}</td>
-            </tr>"""
-
-        html = f"""
+    html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -451,12 +403,4 @@ def send_order_now_successful_email(
 </body>
 </html>
 """
-        msg.attach(MIMEText(html, "html"))
-
-        _smtp_send(msg, to_email)
-
-        return True
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send order success email to {to_email}: {e}")
-        return False
-
+    return _send_email(to_email, f"Great News! Order Approved — {order_id} | Charley Stores", html)
